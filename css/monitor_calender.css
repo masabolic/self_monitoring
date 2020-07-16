@@ -1,0 +1,29 @@
+.container {
+    max-width: 512px;
+    margin: 0 auto 0 auto;
+}
+
+td, th {
+    text-align: center;
+    width: 50px;
+    height: 40px;   
+}
+
+th {
+    padding-left: 15px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+.navi {
+    
+    margin: 10px auto;
+    
+}
+
+.navi p {
+    display: inline-block;
+    margin: 10px 5px;
+}

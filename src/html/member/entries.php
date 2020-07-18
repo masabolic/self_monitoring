@@ -13,10 +13,97 @@
         <h1>記入</h1>
     </div>
     <br>
-    <form method="post" action="condition.php">
     <button type="button" onclick="history.back()">元に戻る</button>
     <br><br>
 
+    <?php
+    if(!empty($_POST)){
+    require_once('../common.php');
+    $post = sanitize($_POST);
+    }
+
+    if(isset($post)) {
+        $registration_date = $post['registration_date'];
+        $sleep_start_time = $post['sleep_start_time'];
+        $sleep_end_time = $post['sleep_end_time'];
+        $sound_sleep = $post['sound_sleep'];
+        $nap = $post['nap'];
+        $nap_start_time = $post['nap_start_time'];
+        $nap_end_time = $post['nap_end_time'];
+        $TV = $post['TV'];
+        $book = $post['book'];
+        $sleepy = $post['sleepy'];
+        $motivation = $post['motivation'];
+        $loose = $post['loose'];
+        $appetite = $post['appetite'];
+        $smile = $post['smile'];
+        $frustration = $post['frustration'];
+        $auditory_hallucination = $post['auditory_hallucination'];
+        $weather = $post['weather'];
+        $event1 = $post['event1'];
+        $event2 = $post['event2'];
+        $event3 = $post['event3'];
+        $notice = $post['notice'];
+
+        $ok_flag = true;
+
+        if(strlen($event1) > 100　|| strlen($event2) > 100 || strlen($event3) > 100) {
+            print "✓　恐れ⼊りますが、出来事は100⽂字以内でご⼊⼒ください。<br>";
+            $ok_flag = false;
+        }
+
+        if(strlen($notice) > 1000) {
+            print "✓　恐れ⼊りますが、気づいたことは1000⽂字以内でご⼊⼒ください。<br>";
+            $ok_flag = false;
+        }
+
+        // エラーがない場合、SQLに作業登録する
+        if($ok_flag == true) {
+            $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+            $user = 'root';
+            $password = '';
+            $dbh = new PDO($dsn, $user, $password);
+            $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            $sql = 'INSERT INTO monitoring(user_id, entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)';
+            $stmt = $dbh -> prepare($sql);
+            $data[] = 0;
+            $data[] = $registration_date;
+            $data[] = $sleep_end_time;
+            $data[] = $sleep_end_time;
+            $data[] = $sound_sleep;
+            $data[] = $nap;
+            $data[] = $nap_start_time;
+            $data[] = $nap_end_time;
+            $data[] = $weather;
+            $data[] = $event1;
+            $data[] = $event2;
+            $data[] = $event3;
+            $data[] = $notice;
+
+            $stmt -> execute($data);
+
+            $sql2 = 'INSERT INTO condition_levels(monitoring_id, condition_id, condition_level) VALUES(?,?,?)';
+            $stmt2 = $dbh -> prepare($sql2);
+            $data2[] = 0;
+            $data2[] = $registration_date;
+            $data2[] = $sleep_end_time;
+            $data2[] = $sleep_end_time;
+
+            $stmt2 -> execute($data2);
+
+            $dbh = null;
+
+            header('Location: condition.php');
+            exit();
+        }
+
+    }
+
+?>
+
+    <form method="post" action="entries.php">
+    <br><br>
 
     <input type="date" name="registration_date" value="<?= date('Y-m-d') ?>">
     <input type="button" value="前日">
@@ -120,6 +207,20 @@
     <p>3：少し出来てる</p>
     <p>4：出来てる</p>
     <p>ー:やってない(判定できない)</p>
+
+    <?php
+    $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+            $user = 'root';
+            $password = '';
+            $dbh = new PDO($dsn, $user, $password);
+            $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+    
+            $sql = 'SELECT id, item, display_unnecessary, color, FROM physical_condition_items WHERE 1';
+            $stmt = $dbh -> prepare($sql);
+            $stmt -> execute();
+        ?>
+
 
     <h5>
     <label for="TV">TV(漫画)が楽しめている</label>

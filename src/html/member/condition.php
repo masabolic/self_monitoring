@@ -12,17 +12,30 @@
     <div class="col-8">
         <h1>体調・精神信号、行動指針、(追加項目)</h1>
     </div>
+    <?php
+    if(!empty($_POST)){
+    require_once('../common.php');
+    $post = sanitize($_POST);
+    }
+
+    if(isset($post)) {
+        $spirit_signal = $post['spirit_signal'];
+        $activity_id = $post['activity_id'];
+    ?>
     <br>
     <h5>
     体調・精神信号
+    <?php print $spirit_signal; ?>
     </h5>
     <br>
 
     <h5>
     行動指針
+    <?php print $activity_id; ?>
     </h5>
     <br>
 
+    <?php if($spirit_signal >= 3) { ?>
     <h5>
     追加項目
     </h5>
@@ -39,6 +52,7 @@
     <p>4：ひどいほど出てる</p>
     <br>
     <br>
+
 
     <h3>
     追加黄
@@ -87,11 +101,14 @@
     </select>
     <br>
     <br>
-    <br>
-    <br>
-    <br>
+    <input type="button" value="一括(0)">
+    <br><br><br><br>
 
+    <?php }
 
+    if($spirit_signal == 5) {
+    ?>
+    
     <h3>
     追加赤
     </h3>
@@ -144,6 +161,10 @@
     </select>
     <br>
     <br>
+    <?php }
+
+    if($spirit_signal >= 3) { 
+    ?>
 
     <input type="button" value="一括(0)">
     <br><br><br><br>
@@ -152,7 +173,9 @@
     <br>
     <br>
     </form>
-
+    
+    <?php } 
+    } ?>
 
 
 

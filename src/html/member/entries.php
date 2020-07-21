@@ -35,9 +35,11 @@
         $event2 = $post['event2'];
         $event3 = $post['event3'];
         $notice = $post['notice'];
+        $spirit_signal_yellow = 0;
 
         $ok_flag = true;
 
+        // エラー
         if(strlen($event1) > 100 || strlen($event2) > 100 || strlen($event3) > 100) {
             print "✓　恐れ⼊りますが、出来事は100⽂字以内でご⼊⼒ください。<br>";
             $ok_flag = false;
@@ -48,8 +50,9 @@
             $ok_flag = false;
         }
 
-        // エラーがない場合、SQLに作業登録する
+        // SQLに登録    
         if($ok_flag == true) {
+            // monitoringにその日初めての記入
             $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
             $user = 'root';
             $password = '';
@@ -75,7 +78,8 @@
             $stmt -> execute($data);
         
             $dbh = null;
-
+                
+                // monitoring記入後にidを取り出す。
                 $dsn6 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                 $user6 = 'root';
                 $password6 = '';
@@ -91,52 +95,105 @@
                 $dbh6 = null;
 
                 $rec6 = $stmt6->fetch(PDO::FETCH_ASSOC);
-                $condition_id = $rec6['id'];
+                $monitoring_id = $rec6['id'];
 
+                // 必要不要と色をループを回して取り出す。
                 $dsn5 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                 $user5 = 'root';
                 $password5 = '';
                 $dbh5 = new PDO($dsn5, $user5, $password5);
                 $dbh5->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         
-                $sql5 = 'SELECT id, display_unnecessary FROM physical_condition_items WHERE 1';
+                $sql5 = 'SELECT id, display_unnecessary, color FROM physical_condition_items WHERE 1';
                 $stmt5 = $dbh5 -> prepare($sql5);
                 $stmt5 -> execute();
 
                 $dbh5 = null;
-                
+
                 while(true) {
                     $rec5 = $stmt5->fetch(PDO::FETCH_ASSOC);
+
+                    //　記入後、体調信号と行動指針の度合を決める。
                     if($rec5==false){
+                        $dsn7 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                        $user7 = 'root';
+                        $password7 = '';
+                        $dbh7 = new PDO($dsn7, $user7, $password7);
+                        $dbh7->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                        $sql7 = 'UPDATE monitoring SET spirit_signal=?, activity_id=? WHERE id = ?';
+                        $stmt7 = $dbh7 -> prepare($sql7);
+                        $data7 = [];
+                        if($spirit_signal_yellow == 0) {
+                            $data7[] = 0;
+                            $data7[] = 0;
+                            $spirit_signal = 0;
+                        }elseif($spirit_signal_yellow == 1) {
+                            $data7[] = 1;
+                            $data7[] = 1;
+                            $spirit_signal = 1;
+                        }else{
+                            $data7[] = 2;
+                            $data7[] = 2;
+                            $spirit_signal = 2;
+                        }
+                        $data7[] = $monitoring_id;
+
+                        $stmt7 -> execute($data7);
+
+                        $dbh7 = null;
                         break;
                     }
+
+                    //不必要となったら、記録しない
                     if($rec5['display_unnecessary'] == 1){
                         continue;
                     }
-                    $monitoring_id = $rec5['id'];
-                    if(!empty($post[$monitoring_id])) {
-                        
-                        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                        $user = 'root';
-                        $password = '';
-                        $dbh = new PDO($dsn, $user, $password);
-                        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                    $condition_id = $rec5['id'];
+                    $condition_level = $post[$condition_id];
+
+                    // 体調レベルによって、体調・精神信号を決める
+                    if(!empty($post[$condition_id])) {
+                        if($rec5['color'] == 2) {
+                            if($condition_level == 5) {
+                                $spirit_signal_yellow += 2;
+                            }elseif($condition_level > 3) {
+                                $spirit_signal_yellow++;
+                            }
+                        }
+                            
+                        // 体調レベルのSQLを記入する。見た目は0-4だが、emptyを使うため、プログラミング上は1-5の数値になっている。
+                        $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                        $user2 = 'root';
+                        $password2 = '';
+                        $dbh2 = new PDO($dsn2, $user2, $password2);
+                        $dbh2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
                         $sql2 = 'INSERT INTO condition_levels(monitoring_id, condition_id, condition_level) VALUES(?,?,?)';
-                        $stmt2 = $dbh -> prepare($sql2);
+                        $stmt2 = $dbh2 -> prepare($sql2);
                         $data2 = [];
-                        $data2[] = $rec5['id'];
+                        $data2[] = $monitoring_id;
                         $data2[] = $condition_id;
-                        $data2[] = $post[$monitoring_id];
+                        $data2[] = $condition_level;
 
                         $stmt2 -> execute($data2);
 
                         $dbh = null;
 
-                        // header('Location: condition.php');
-                        // exit();
+                        
                     }
                 }
+            ?>
+            
+            <form method="post" action="entries.php">
+            <input type="hidden" name="spirit_signal" value="<?= $spirit_signal; ?>">
+            <input type="hidden" name="activity_id" value="<?= $spirit_signal; ?>">
+            </form>
+
+            <?php
+            header('Location: condition.php');
+            exit();
             }
         }
     ?>
@@ -176,15 +233,19 @@
     <div class="row">
         <div class="col-2">朝起きた時の熟睡感</div>
         <div class="col-2">
-            <input type="radio" name="sound_sleep" id="yes_sleep" value="0">
+            <input type="radio" name="sound_sleep" id="no_answer" value="0" checked="checked">
+            <label for="no_answer">未回答</label>
+        </div>
+        <div class="col-2">
+            <input type="radio" name="sound_sleep" id="yes_sleep" value="1">
             <label for="yes_sleep">〇：ある</label>
         </div>
         <div class="col-2">
-            <input type="radio" name="sound_sleep" id="no_sleep" value="1">
+            <input type="radio" name="sound_sleep" id="no_sleep" value="2">
             <label for="no_sleep">✕：ない</label>
         </div>
         <div class="col-4">
-            <input type="radio" name="sound_sleep" id="not_know_sleep" value="2">
+            <input type="radio" name="sound_sleep" id="not_know_sleep" value="3">
             <label for="not_know_sleep">△：どちらともいえない</label>
         </div>
     </div>
@@ -193,15 +254,19 @@
     <div class="row">
         <div class="col-2">昼寝した？？</div>
         <div class="col-2">
-            <input type="radio" name="nap" id="yes_nap" value="0">
+            <input type="radio" name="nap" id="no_answer" value="0" checked="checked">
+            <label for="no_answer">未回答</label>
+        </div>
+        <div class="col-2">
+            <input type="radio" name="nap" id="yes_nap" value="1">
             <label for="yes_nap">〇：はい</label>
         </div>
         <div class="col-2">
-            <input type="radio" name="nap" id="no_nap" value="1">
+            <input type="radio" name="nap" id="no_nap" value="2">
             <label for="no_nap">✕：いいえ</label>
         </div>
         <div class="col-2">
-            <input type="radio" name="nap" id="not_know_nap" value="2">
+            <input type="radio" name="nap" id="not_know_nap" value="3">
             <label for="not_know_nap">？：忘れた</label>
         </div>
     </div>

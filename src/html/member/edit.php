@@ -19,12 +19,40 @@
 
     <input type="date" name="registration_date" value="<?= $_GET["date"] ?>">
 
+    <?php
+    $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+    $user2 = 'root';
+    $password2 = '';
+    $dbh2 = new PDO($dsn2, $user2, $password2);
+    $dbh2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $sql2 = "SELECT id, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice FROM monitoring WHERE entries_date = ?";
+    $data2 = [];
+    $data2[] = $_GET["date"];
+    $stmt2 = $dbh2 -> prepare($sql2);
+    $stmt2 -> execute($data2);
+
+    $dbh2 = null;
+
+    $rec2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+    $monitoring_id = $rec2['id'];
+
+    $sleep_start =  $rec2["sleep_start_time"];
+    $sleep_end = $rec2["sleep_end_time"];
+    $sound_sleep = $rec2["sound_sleep"];
+    $nap = $rec2["nap"];
+    $nap_start_time = $rec2["nap_start_time"];
+    $nap_end_time = $rec2["nap_end_time"];
+    $weather = $rec2["weather"];
+    $event1 = $rec2["event1"];
+    $event2 = $rec2["event2"];
+    $event3 = $rec2["event3"];
+    $notice = $rec2["notice"];
+
+    ?>
+
     <!-- 睡眠記入欄 -->
     <h2>睡眠</h2>
-    <?php
-    $sleep_start =  $_GET["date"] . "T00:00";
-    $sleep_end = $_GET["date"] . "T08:00";
-    ?>
     <div class="row">
         <div class="col-2"><label for="sleep_start_time">睡眠開始時間</label></div>
         <div class="col-2">
@@ -76,7 +104,7 @@
     <div class="row">
         <div class="col-2"><label for="nap_start_time">昼寝開始時間</label></div>
         <div class="col-2">
-            <input type="datetime-local" name="nap_start_time" id="nap_start_time">
+            <input type="datetime-local" name="nap_start_time" id="nap_start_time" value="<?php if(isset($nap_start_time) && !empty($nap_start_time)) { print $nap_start_time; }?>" >
         </div>
     </div>
     <div class="row">
@@ -93,16 +121,16 @@
 
     <?php
     // 信号リスト
-    $signal_list = [
-        0 => '0', 1 => '1', 2 => '2', 3 => '3', 4 => '4',
-    ];
+    $signal_list = array(
+        '0' => '0', '1' => '1', '2' => '2', '3' => '3', '4' => '4',
+    );
 
     // 天気
-    $weather = [
-        0 => '晴れ', 1 => '晴れ時々曇り', 2 => '晴れ時々雨', 3 => '晴れのち曇り', 4 => '晴れのち雨',
-        5 => '雨', 6 => '雨時々晴れ', 7 => '雨時々曇り', 8 => '雨のち晴れ', 9 => '雨のち曇り',
-        10 => '曇り', 11 => '曇り時々晴れ', 12 => '曇り時々雨', 13 => '曇りのち晴れ', 14 => '曇りのち雨',  
-    ];
+    $weather = array(
+        '0' => '晴れ', '1' => '晴れ時々曇り', '2' => '晴れ時々雨', '3' => '晴れのち曇り', '4' => '晴れのち雨',
+        '5' => '雨', '6' => '雨時々晴れ', '7' => '雨時々曇り', '8' => '雨のち晴れ', '9' => '雨のち曇り',
+        '10' => '曇り', '11' => '曇り時々晴れ', '12' => '曇り時々雨', '13' => '曇りのち晴れ', '14' => '曇りのち雨',  
+    );
     ?>
 
     <!-- 青信号 -->
@@ -113,33 +141,48 @@
     <p>4：出来てる</p>
     <p>ー:やってない(判定できない)</p>
 
-    <h5>
-    <label for="TV">TV(漫画)が楽しめている</label>
-    </h5>
-    <select name="TV" id="TV">
-        <option value="" selected>--選択して下さい--</option>
-        <option value="-">-</option>
-        <option value="0">0</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-    </select>
-    <br>
-    <br>
+    <?php
+        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+        $user = 'root';
+        $password = '';
+        $dbh = new PDO($dsn, $user, $password);
+        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    <h5>
-    <label for="book">本が３０分読める</label>
-    </h5>
-    <select name="book" id="book">
-        <option value="" selected>--選択して下さい--</option>
-        <option value="-">-</option>
-    <?php foreach ($signal_list as $v) : ?>
-        <option value="<?= $v ?>"><?= $v ?></option>
-    <?php endforeach ?>
-    </select>
-    <br>
-    <br>
+
+        $sql = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
+        $stmt = $dbh -> prepare($sql);
+        $stmt -> execute();
+
+        $dbh = null;
+
+        while(true) {
+            $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+            if($rec==false){
+                break;
+            }
+            if($rec['display_unnecessary'] == 1){
+                continue;
+            }
+
+            if($rec['color'] == 0){
+        ?>
+            <h5>
+            <input type="hidden" name="id" value="<?= $rec['id']; ?>">
+            <label for="<?= $rec['id']; ?>"><?php print $rec['item']; ?></label>
+            </h5>
+            <select name="<?= $rec['id']; ?>" id="<?= $rec['id']; ?>">
+                <option value="" selected>--選択して下さい--</option>
+                <?php foreach ($signal_list as $v => $value) : ?>
+                    <option value="<?= $v ?>"><?= $value ?></option>
+                <?php endforeach ?>
+                <option value="5">-</option>
+            </select>
+            <br>
+            <br>
+            <?php } 
+        } ?>
+        <br><br>
+
     <input type="button" value="一括(-)">
     <br><br><br><br>
 
@@ -153,90 +196,47 @@
     <p>4：ひどいほど出てる</p>
     <br>
     <br>
-    
-    <h5>
-    <label for="sleepy">眠い。欠伸する。</label>
-    </h5>
-    <select name="sleepy" id="sleepy">
-        <option value="" selected>--選択して下さい--</option>
-    <?php foreach ($signal_list as $v) : ?>
-        <option value="<?= $v ?>"><?= $v ?></option>
-    <?php endforeach ?>
-    </select>
-    <br>
-    <br>
 
-    <h5>
-    <label for="motivation">やる気がない</label>
-    </h5>
-    <select name="motivation" id="motivation">
-        <option value="" selected>--選択して下さい--</option>
-    <?php foreach ($signal_list as $v) : ?>
-        <option value="<?= $v ?>"><?= $v ?></option>
-    <?php endforeach ?>
-    </select>
-    <br>
-    <br>
+    <?php 
+        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+        $user = 'root';
+        $password = '';
+        $dbh = new PDO($dsn, $user, $password);
+        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    <h5>
-    <label for="loose">金遣いがルーズになる</label>
-    </h5>
-    <select name="loose" id="loose">
-        <option value="" selected>--選択して下さい--</option>
-    <?php foreach ($signal_list as $v) : ?>
-        <option value="<?= $v ?>"><?= $v ?></option>
-    <?php endforeach ?>
-    </select>
-    <br>
-    <br>
 
-    <h5>
-    <label for="appetite">食欲が異常に湧く</label>
-    </h5>
-    <select name="appetite" id="appetite">
-        <option value="" selected>--選択して下さい--</option>
-    <?php foreach ($signal_list as $v) : ?>
-        <option value="<?= $v ?>"><?= $v ?></option>
-    <?php endforeach ?>
-    </select>
-    <br>
-    <br>
+        $sql = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
+        $stmt = $dbh -> prepare($sql);
+        $stmt -> execute();
 
-    <h5>
-    <label for="smile">ニヤニヤが止まらない</label>
-    </h5>
-    <select name="smile" id="smile">
-        <option value="" selected>--選択して下さい--</option>
-    <?php foreach ($signal_list as $v) : ?>
-        <option value="<?= $v ?>"><?= $v ?></option>
-    <?php endforeach ?>
-    </select>
-    <br>
-    <br>
+        $dbh = null;
+        
+        while(true) {
+            $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+            if($rec==false){
+                break;
+            }
+            if($rec['display_unnecessary'] == 1){
+                continue;
+            }
 
-    <h5>
-    <label for="frustration">イライラ・モヤモヤ</label>
-    </h5>
-    <select name="frustration" id="frustration">
-        <option value="" selected>--選択して下さい--</option>
-    <?php foreach ($signal_list as $v) : ?>
-        <option value="<?= $v ?>"><?= $v ?></option>
-    <?php endforeach ?>
-    </select>
-    <br>
-    <br>
+            if($rec['color'] == 2) {
+            ?>
+            <h5>
+            <label for="<?= $rec['id']; ?>"><?php print $rec['item']; ?></label>
+            </h5>
+            <select name="<?= $rec['id']; ?>" id="<?= $rec['id']; ?>">
+                <option value="" selected>--選択して下さい--</option>
+            <?php foreach ($signal_list as $v => $value) : ?>
+                <option value="<?= $v ?>"><?= $value ?></option>
+            <?php endforeach ?>
+            </select>
+            <br>
+            <br>
+            <?php }
+        }
+    ?>
 
-    <h5>
-    <label for="auditory_hallucination">幻聴、首のそわそわ</label>
-    </h5>
-    <select name="auditory_hallucination" id="auditory_hallucination">
-        <option value="" selected>--選択して下さい--</option>
-        <?php foreach ($signal_list as $v) : ?>
-            <option value="<?= $v ?>"><?= $v ?></option>
-        <?php endforeach ?>
-    </select>
-    <br>
-    <br>
     <input type="button" value="一括(0)">
     <br><br><br><br>
 

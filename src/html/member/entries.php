@@ -154,16 +154,16 @@
                     $condition_level = $post[$condition_id];
 
                     // 体調レベルによって、体調・精神信号を決める
-                    if(!empty($post[$condition_id])) {
+                    if(is_numeric($condition_level)) {
                         if($rec5['color'] == 2) {
-                            if($condition_level == 5) {
+                            if($condition_level == 4) {
                                 $spirit_signal_yellow += 2;
-                            }elseif($condition_level > 3) {
+                            }elseif($condition_level >= 2) {
                                 $spirit_signal_yellow++;
                             }
                         }
                             
-                        // 体調レベルのSQLを記入する。見た目は0-4だが、emptyを使うため、プログラミング上は1-5の数値になっている。
+                        // 体調レベルのSQLを記入する。
                         $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                         $user2 = 'root';
                         $password2 = '';
@@ -179,19 +179,13 @@
 
                         $stmt2 -> execute($data2);
 
-                        $dbh = null;
-
-                        
+                        $dbh2 = null;
                     }
                 }
-            ?>
-            
-            <form method="post" action="entries.php">
-            <input type="hidden" name="spirit_signal" value="<?= $spirit_signal; ?>">
-            <input type="hidden" name="activity_id" value="<?= $spirit_signal; ?>">
-            </form>
+            session_start();
+            $_SESSION['spirit_signal'] = $spirit_signal;
+            $_SESSION['monitoring_id'] = $monitoring_id;
 
-            <?php
             header('Location: condition.php');
             exit();
             }
@@ -293,7 +287,7 @@
     <?php
     // 信号リスト
     $signal_list = array(
-        '1' => '0', '2' => '1', '3' => '2', '4' => '3', '5' => '4',
+        '0' => '0', '1' => '1', '2' => '2', '3' => '3', '4' => '4',
     );
 
     // 天気
@@ -314,95 +308,95 @@
     <br>
 
     <?php
-    $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+        $user = 'root';
+        $password = '';
+        $dbh = new PDO($dsn, $user, $password);
+        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+        $sql3 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
+        $stmt3 = $dbh -> prepare($sql3);
+        $stmt3 -> execute();
+
+        $dbh = null;
+
+        while(true) {
+            $rec = $stmt3->fetch(PDO::FETCH_ASSOC);
+            if($rec==false){
+                break;
+            }
+            if($rec['display_unnecessary'] == 1){
+                continue;
+            }
+
+            if($rec['color'] == 0){
+    ?>
+            <h5>
+            <input type="hidden" name="id" value="<?= $rec['id']; ?>">
+            <label for="<?= $rec['id']; ?>"><?php print $rec['item']; ?></label>
+            </h5>
+            <select name="<?= $rec['id']; ?>" id="<?= $rec['id']; ?>">
+                <option value="" selected>--選択して下さい--</option>
+                <?php foreach ($signal_list as $v => $value) : ?>
+                    <option value="<?= $v ?>"><?= $value ?></option>
+                <?php endforeach ?>
+                <option value="5">-</option>
+            </select>
+            <br>
+            <br>
+            <?php } 
+        } ?>
+        <br><br>
+
+        <h2>黄信号</h2>
+        <br>
+
+        <p>0：体調異常なし</p>
+        <p>1：変化はあるけど、体調に関わるほどではない</p>
+        <p>2：体調にちょっと関わる</p>
+        <p>3：体調に関わる</p>
+        <p>4：ひどいほど出てる</p>
+        <br>
+        
+        <?php 
+            $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
             $user = 'root';
             $password = '';
             $dbh = new PDO($dsn, $user, $password);
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     
-            $sql3 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
-            $stmt3 = $dbh -> prepare($sql3);
-            $stmt3 -> execute();
+            $sql4 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
+            $stmt4 = $dbh -> prepare($sql4);
+            $stmt4 -> execute();
 
             $dbh = null;
-
+            
             while(true) {
-                $rec = $stmt3->fetch(PDO::FETCH_ASSOC);
-                if($rec==false){
+                $rec2 = $stmt4->fetch(PDO::FETCH_ASSOC);
+                if($rec2==false){
                     break;
                 }
-                if($rec['display_unnecessary'] == 1){
+                if($rec2['display_unnecessary'] == 1){
                     continue;
                 }
 
-                if($rec['color'] == 0){
-        ?>
+                if($rec2['color'] == 2) {
+                ?>
                 <h5>
-                <input type="hidden" name="id" value="<?= $rec['id']; ?>">
-                <label for="<?= $rec['id']; ?>"><?php print $rec['item']; ?></label>
+                <label for="<?= $rec2['id']; ?>"><?php print $rec2['item']; ?></label>
                 </h5>
-                <select name="<?= $rec['id']; ?>" id="<?= $rec['id']; ?>">
+                <select name="<?= $rec2['id']; ?>" id="<?= $rec2['id']; ?>">
                     <option value="" selected>--選択して下さい--</option>
-                    <?php foreach ($signal_list as $v => $value) : ?>
-                        <option value="<?= $v ?>"><?= $value ?></option>
-                    <?php endforeach ?>
-                    <option value="6">-</option>
+                <?php foreach ($signal_list as $v => $value) : ?>
+                    <option value="<?= $v ?>"><?= $value ?></option>
+                <?php endforeach ?>
                 </select>
                 <br>
                 <br>
-                <?php } 
+                <?php }
             } ?>
-            <br><br>
-
-                <h2>黄信号</h2>
-                <br>
-
-                <p>0：体調異常なし</p>
-                <p>1：変化はあるけど、体調に関わるほどではない</p>
-                <p>2：体調にちょっと関わる</p>
-                <p>3：体調に関わる</p>
-                <p>4：ひどいほど出てる</p>
-                <br>
-                
-                <?php 
-                    $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user = 'root';
-                    $password = '';
-                    $dbh = new PDO($dsn, $user, $password);
-                    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            
-            
-                    $sql4 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
-                    $stmt4 = $dbh -> prepare($sql4);
-                    $stmt4 -> execute();
-
-                    $dbh = null;
-                    
-                    while(true) {
-                    $rec2 = $stmt4->fetch(PDO::FETCH_ASSOC);
-                    if($rec2==false){
-                        break;
-                    }
-                    if($rec2['display_unnecessary'] == 1){
-                        continue;
-                    }
-
-                    if($rec2['color'] == 2) {
-                    ?>
-                    <h5>
-                    <label for="<?= $rec2['id']; ?>"><?php print $rec2['item']; ?></label>
-                    </h5>
-                    <select name="<?= $rec2['id']; ?>" id="<?= $rec2['id']; ?>">
-                        <option value="" selected>--選択して下さい--</option>
-                    <?php foreach ($signal_list as $v => $value) : ?>
-                        <option value="<?= $v ?>"><?= $value ?></option>
-                    <?php endforeach ?>
-                    </select>
-                    <br>
-                    <br>
-                    <?php }
-                } ?>
  
     <input type="button" value="一括(0)">
     <br><br><br><br>

@@ -164,25 +164,40 @@
                     $rec8 = $stmt8->fetch(PDO::FETCH_ASSOC);
                     $id = "id" . $rec8['id'];
                     $level_id = $post[$id];
-                        
-                    // 体調レベルのSQLを記入する。
+                    
+                    if(isset($level_id)) {
+                    // 体調レベルのSQLをアップデートする。
                     $dsn6 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                     $user6 = 'root';
                     $password6 = '';
                     $dbh6 = new PDO($dsn6, $user6, $password6);
                     $dbh6->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-                    $sql6 = 'UPDATE condition_levels SET monitoring_id=?, condition_id=?, condition_level=? WHERE id = ?';
+                    $sql6 = 'UPDATE condition_levels SET condition_level=? WHERE id = ?';
                     $stmt6 = $dbh6 -> prepare($sql6);
                     $data6 = [];
-                    $data6[] = $monitoring_id;
-                    $data6[] = $condition_id;
                     $data6[] = $condition_level;
                     $data6[] = $level_id;
 
                     $stmt6 -> execute($data6);
 
                     $dbh6 = null;
+                    } else {
+                        if(isset($condition_level)) {
+                            $dsn9 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                            $user9 = 'root';
+                            $password9 = '';
+                            $dbh9 = new PDO($dsn9, $user9, $password9);
+                            $dbh9->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                            $sql9 = 'INSERT INTO condition_levels(monitoring_id, condition_id, condition_level) VALUES(?,?,?)';
+                            $stmt9 = $dbh9 -> prepare($sql9);
+                            $data9 = [];
+                            $data9[] = $monitoring_id;
+                            $data9[] = $condition_id;
+                            $data9[] = $condition_level;
+                        }
+                    }
                 }
             }
             $_SESSION['spirit_signal'] = $spirit_signal;

@@ -121,8 +121,9 @@
     ?>
     </h5>
     <br>
-
-    <?php if($spirit_signal >= 2) { ?>
+    <?php if($spirit_signal < 2) { ?>
+        <button onclick="location.href='./selected_screen.php'">最初の画面へ</button>
+    <?php } elseif($spirit_signal >= 2) { ?>
         <h5>
         追加項目
         </h5>

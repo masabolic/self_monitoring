@@ -63,7 +63,7 @@
             $stmt = $dbh -> prepare($sql);
             $data[] = 0;
             $data[] = $registration_date;
-            $data[] = $sleep_end_time;
+            $data[] = $sleep_start_time;
             $data[] = $sleep_end_time;
             $data[] = $sound_sleep;
             $data[] = $nap;
@@ -121,19 +121,16 @@
                         $dbh7 = new PDO($dsn7, $user7, $password7);
                         $dbh7->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-                        $sql7 = 'UPDATE monitoring SET spirit_signal=?, activity_id=? WHERE id = ?';
+                        $sql7 = 'UPDATE monitoring SET spirit_signal=? WHERE id = ?';
                         $stmt7 = $dbh7 -> prepare($sql7);
                         $data7 = [];
                         if($spirit_signal_yellow == 0) {
                             $data7[] = 0;
-                            $data7[] = 0;
                             $spirit_signal = 0;
                         }elseif($spirit_signal_yellow == 1) {
                             $data7[] = 1;
-                            $data7[] = 1;
                             $spirit_signal = 1;
                         }else{
-                            $data7[] = 2;
                             $data7[] = 2;
                             $spirit_signal = 2;
                         }
@@ -248,7 +245,7 @@
     <div class="row">
         <div class="col-2">昼寝した？？</div>
         <div class="col-2">
-            <input type="radio" name="nap" id="no_answer" value="0" checked="checked">
+            <input type="radio" name="nap" id="no_answer_nap" value="0" checked="checked">
             <label for="no_answer">未回答</label>
         </div>
         <div class="col-2">
@@ -291,10 +288,10 @@
     );
 
     // 天気
-    $weather = array(
-        '0' => '晴れ', '1' => '晴れ時々曇り', '2' => '晴れ時々雨', '3' => '晴れのち曇り', '4' => '晴れのち雨',
-        '5' => '雨', '6' => '雨時々晴れ', '7' => '雨時々曇り', '8' => '雨のち晴れ', '9' => '雨のち曇り',
-        '10' => '曇り', '11' => '曇り時々晴れ', '12' => '曇り時々雨', '13' => '曇りのち晴れ', '14' => '曇りのち雨',  
+    $weather_list = array(
+        '0' => '--選択して下さい--', '1' => '晴れ', '2' => '晴れ時々曇り', '3' => '晴れ時々雨', '4' => '晴れのち曇り',
+        '5' => '晴れのち雨', '6' => '雨', '7' => '雨時々晴れ', '8' => '雨時々曇り', '9' => '雨のち晴れ', '10' => '雨のち曇り',
+        '11' => '曇り', '12' => '曇り時々晴れ', '13' => '曇り時々雨', '14' => '曇りのち晴れ', '15' => '曇りのち雨',
     );
     ?>
 
@@ -405,8 +402,7 @@
     <label for="weather">天気</label>
     </h5>
     <select name="weather" id="weather">
-        <option value="" selected>--選択して下さい--</option>
-        <?php foreach ($weather as $v => $value) : ?>
+        <?php foreach ($weather_list as $v => $value) : ?>
             <option value="<?= $v ?>"><?= $value ?></option>
         <?php endforeach ?>
     </select>

@@ -13,7 +13,7 @@
         <h1>記入</h1>
     </div>
     <br>
-    <button type="button" onclick="history.back()">元に戻る</button>
+    <button type="button" onclick="location.href='./selected_screen.php'">最初の画面へ</button>
     <br><br>
 
     <?php
@@ -45,7 +45,7 @@
             $ok_flag = false;
         }
 
-        if(strlen($notice) > 1000) {
+        if(strlen($notice) > 1000 ) {
             print "✓　恐れ⼊りますが、気づいたことは1000⽂字以内でご⼊⼒ください。<br>";
             $ok_flag = false;
         }
@@ -199,24 +199,20 @@
     <h2>睡眠</h2>
     <?php
     $date = new DateTime('now', new \DateTimeZone('Asia/Tokyo'));
-    $days = $date->format('d');
-    $year = $date->format('Y');
-    $month = $date->format('m');
-    $to = new DateTime();
-    $daytime = $to -> format("{$year}-{$month}-{$days}");
+    $daytime = $date -> format("Y-m-d");
     $sleep_start =  $daytime . "T00:00";
     $sleep_end = $daytime . "T08:00";
     ?>
     <div class="row">
         <div class="col-2"><label for="sleep_start_time">睡眠開始時間</label></div>
         <div class="col-2">
-            <input type="datetime-local" name="sleep_start_time" id="sleep_start_time" value="<?= $sleep_start ?>">
+    <input type="datetime-local" name="sleep_start_time" id="sleep_start_time" <?php if(isset($sleep_start_time)) { ?> value="<?= $sleep_start_time ?>" <?php }else{ ?> value="<?= $sleep_start ?>" <?php }?> >
         </div>
     </div>
     <div class="row">
         <div class="col-2"><label for="sleep_end_time">睡眠終了時間</label></div>
         <div class="col-2">
-            <input type="datetime-local" name="sleep_end_time" id="sleep_end_time" value="<?= $sleep_end ?>">
+            <input type="datetime-local" name="sleep_end_time" id="sleep_end_time" <?php if(isset($sleep_end_time)) { ?> value="<?= $sleep_end_time ?>" <?php }else{ ?> value="<?= $sleep_end ?>" <?php }?> >
         </div>
     </div>
     <br>
@@ -228,15 +224,15 @@
             <label for="no_answer">未回答</label>
         </div>
         <div class="col-2">
-            <input type="radio" name="sound_sleep" id="yes_sleep" value="1">
+    <input type="radio" name="sound_sleep" id="yes_sleep" value="1" <?php if(isset($sound_sleep) && $sound_sleep == 1) { ?> checked="checked" <?php } ?> >
             <label for="yes_sleep">〇：ある</label>
         </div>
         <div class="col-2">
-            <input type="radio" name="sound_sleep" id="no_sleep" value="2">
+            <input type="radio" name="sound_sleep" id="no_sleep" value="2" <?php if(isset($sound_sleep) && $sound_sleep == 2) { ?> checked="checked" <?php } ?> >
             <label for="no_sleep">✕：ない</label>
         </div>
         <div class="col-4">
-            <input type="radio" name="sound_sleep" id="not_know_sleep" value="3">
+            <input type="radio" name="sound_sleep" id="not_know_sleep" value="3" <?php if(isset($sound_sleep) && $sound_sleep == 3) { ?> checked="checked" <?php } ?> >
             <label for="not_know_sleep">△：どちらともいえない</label>
         </div>
     </div>
@@ -249,15 +245,15 @@
             <label for="no_answer">未回答</label>
         </div>
         <div class="col-2">
-            <input type="radio" name="nap" id="yes_nap" value="1">
+            <input type="radio" name="nap" id="yes_nap" value="1"  <?php if(isset($nap) && $nap == 1) { ?> checked="checked" <?php } ?> >
             <label for="yes_nap">〇：はい</label>
         </div>
         <div class="col-2">
-            <input type="radio" name="nap" id="no_nap" value="2">
+            <input type="radio" name="nap" id="no_nap" value="2" <?php if(isset($nap) && $nap == 2) { ?> checked="checked" <?php } ?> >
             <label for="no_nap">✕：いいえ</label>
         </div>
         <div class="col-2">
-            <input type="radio" name="nap" id="not_know_nap" value="3">
+            <input type="radio" name="nap" id="not_know_nap" value="3" <?php if(isset($nap) && $nap == 3) { ?> checked="checked" <?php } ?>>
             <label for="not_know_nap">？：忘れた</label>
         </div>
     </div>
@@ -266,13 +262,13 @@
     <div class="row">
         <div class="col-2"><label for="nap_start_time">昼寝開始時間</label></div>
         <div class="col-2">
-            <input type="datetime-local" name="nap_start_time" id="nap_start_time">
+            <input type="datetime-local" name="nap_start_time" id="nap_start_time" <?php if(isset($nap_start_time)) { ?> value="<?= $nap_start_time ?>" <?php } ?>>
         </div>
     </div>
     <div class="row">
         <div class="col-2"><label for="nap_end_time">昼寝終了時間</label></div>
         <div class="col-2">
-            <input type="datetime-local" name="nap_end_time" id="nap_end_time">
+            <input type="datetime-local" name="nap_end_time" id="nap_end_time" <?php if(isset($nap_end_time)) { ?> value="<?= $nap_end_time ?>" <?php } ?>>
         </div>
     </div>
     <br>
@@ -284,7 +280,7 @@
     <?php
     // 信号リスト
     $signal_list = array(
-        '0' => '0', '1' => '1', '2' => '2', '3' => '3', '4' => '4',
+        '1' => '1', '2' => '2', '3' => '3', '4' => '4',
     );
 
     // 天気
@@ -328,15 +324,18 @@
             }
 
             if($rec['color'] == 0){
-    ?>
+    
+            $item_id = $rec['id']
+            ?>
             <h5>
             <input type="hidden" name="id" value="<?= $rec['id']; ?>">
-            <label for="<?= $rec['id']; ?>"><?php print $rec['item']; ?></label>
+            <label for="<?= $item_id; ?>"><?php print $rec['item']; ?></label>
             </h5>
-            <select name="<?= $rec['id']; ?>" id="<?= $rec['id']; ?>">
-                <option value="" selected>--選択して下さい--</option>
+            <select name="<?= $item_id; ?>" id="<?= $item_id; ?>">
+                <option value="" selected >--選択して下さい--</option>
+                <option value="0" <?php if(is_numeric($post[$item_id])) {  ?> selected <?php } ?> >0</option>
                 <?php foreach ($signal_list as $v => $value) : ?>
-                    <option value="<?= $v ?>"><?= $value ?></option>
+                    <option value="<?= $v ?>" <?php if($post[$item_id] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
                 <?php endforeach ?>
                 <option value="5">-</option>
             </select>
@@ -380,15 +379,17 @@
                 }
 
                 if($rec2['color'] == 2) {
+                    $yellow_item_id = $rec2['id'];
                 ?>
                 <h5>
-                <label for="<?= $rec2['id']; ?>"><?php print $rec2['item']; ?></label>
+                <label for="<?= $yellow_item_id; ?>"><?php print $rec2['item']; ?></label>
                 </h5>
-                <select name="<?= $rec2['id']; ?>" id="<?= $rec2['id']; ?>">
-                    <option value="" selected>--選択して下さい--</option>
-                <?php foreach ($signal_list as $v => $value) : ?>
-                    <option value="<?= $v ?>"><?= $value ?></option>
-                <?php endforeach ?>
+                <select name="<?= $yellow_item_id; ?>" id="<?= $yellow_item_id; ?>">
+                    <option value="" selected >--選択して下さい--</option>
+                    <option value="0" <?php if(is_numeric($post[$yellow_item_id])) {  ?> selected <?php } ?> >0</option>
+                    <?php foreach ($signal_list as $v => $value) : ?>
+                        <option value="<?= $v ?>" <?php if($post[$yellow_item_id] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
+                    <?php endforeach ?>
                 </select>
                 <br>
                 <br>
@@ -403,7 +404,7 @@
     </h5>
     <select name="weather" id="weather">
         <?php foreach ($weather_list as $v => $value) : ?>
-            <option value="<?= $v ?>"><?= $value ?></option>
+            <option value="<?= $v ?>" <?php if(isset($weather)) { if($weather == $v){ ?> selected <?php } } ?> ><?= $value ?></option>
         <?php endforeach ?>
     </select>
     <br>
@@ -412,13 +413,13 @@
     <h5>出来事</h5>
     <div class="row">
         <div class="col-3">
-            <input type="text" name="event1">
+            <input type="text" name="event1" <?php if(isset($event1)) { ?> value=<?= $event1 ?> <?php } ?> >
         </div>
         <div class="col-3">
-            <input type="text" name="event2">
+            <input type="text" name="event2" <?php if(isset($event2)) { ?> value=<?= $event2 ?> <?php } ?> >
         </div>
         <div class="col-3">
-            <input type="text" name="event3">
+            <input type="text" name="event3" <?php if(isset($event3)) { ?> value=<?= $event3 ?> <?php } ?> >
         </div>
     </div>
     <br>
@@ -427,7 +428,7 @@
     <h5>
     <label for="notice">気づいたこと</label>
     </h5>
-    <textarea name="notice" id="notice"></textarea>
+    <textarea name="notice" id="notice"><?php if(isset($notice)) { print $notice; } ?></textarea>
     <br>
     <br>
 

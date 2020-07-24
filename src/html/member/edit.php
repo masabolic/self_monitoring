@@ -18,8 +18,8 @@
     <?php
     session_start();
     if(!empty($_POST)){
-    require_once('../common.php');
-    $post = sanitize($_POST);
+        require_once('../common.php');
+        $post = sanitize($_POST);
     }
 
     if(isset($post)) {
@@ -46,14 +46,14 @@
             $ok_flag = false;
         }
 
-        if(strlen($notice) > 1000) {
+        if(strlen($notice) > 1000 ) {
             print "✓　恐れ⼊りますが、気づいたことは1000⽂字以内でご⼊⼒ください。<br>";
             $ok_flag = false;
         }
 
         // SQLに登録    
         if($ok_flag == true) {
-            // monitoringにその日初めての記入
+            // monitoringをアップデート
             $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
             $user = 'root';
             $password = '';
@@ -131,7 +131,6 @@
                 if($rec5['display_unnecessary'] == 1){
                     continue;
                 }
-                print $rec5['id'];
 
                 $condition_id = $rec5['id'];
                 $condition_level = $post[$condition_id];
@@ -165,7 +164,7 @@
                     $id = "id" . $rec8['id'];
                     $level_id = $post[$id];
                     
-                    if(isset($level_id)) {
+                    if(is_numeric($level_id)) {
                     // 体調レベルのSQLをアップデートする。
                     $dsn6 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                     $user6 = 'root';
@@ -196,6 +195,10 @@
                             $data9[] = $monitoring_id;
                             $data9[] = $condition_id;
                             $data9[] = $condition_level;
+
+                            $stmt9 -> execute($data9);
+
+                            $dbh9 = null;
                         }
                     }
                 }
@@ -244,23 +247,23 @@
 
     $sleep_start =  $rec2["sleep_start_time"];
     $date_start = new DateTime($sleep_start);
-    $sleep_start_time = $date_start->format('Y-m-d') . 'T' . $date_start->format('H:i');
+    $sleep_start_time_default = $date_start->format('Y-m-d') . 'T' . $date_start->format('H:i');
     $sleep_end = $rec2["sleep_end_time"];
     $date_end = new DateTime($sleep_end);
-    $sleep_end_time = $date_end->format('Y-m-d') . 'T' . $date_end->format('H:i');
-    $sound_sleep = $rec2["sound_sleep"];
-    $nap = $rec2["nap"];
+    $sleep_end_time_default = $date_end->format('Y-m-d') . 'T' . $date_end->format('H:i');
+    $sound_sleep_default = $rec2["sound_sleep"];
+    $nap_default = $rec2["nap"];
     $nap_start = $rec2["nap_start_time"];
     $date_nap_start = new DateTime($nap_start);
-    $nap_start_time = $date_nap_start->format('Y-m-d') . 'T' . $date_nap_start->format('H:i');
+    $nap_start_time_default = $date_nap_start->format('Y-m-d') . 'T' . $date_nap_start->format('H:i');
     $nap_end = $rec2["nap_end_time"];
     $date_nap_end = new DateTime($nap_end);
-    $nap_end_time = $date_nap_end->format('Y-m-d') . 'T' . $date_nap_end->format('H:i');
-    $weather = $rec2["weather"];
-    $event1 = $rec2["event1"];
-    $event2 = $rec2["event2"];
-    $event3 = $rec2["event3"];
-    $notice = $rec2["notice"];
+    $nap_end_time_default = $date_nap_end->format('Y-m-d') . 'T' . $date_nap_end->format('H:i');
+    $weather_default = $rec2["weather"];
+    $event1_default = $rec2["event1"];
+    $event2_default = $rec2["event2"];
+    $event3_default = $rec2["event3"];
+    $notice_default = $rec2["notice"];
     ?>
 
     <!-- 睡眠記入欄 -->
@@ -406,7 +409,7 @@
             <label for="<?= $rec['id']; ?>"><?php print $rec['item']; ?></label>
             </h5>
             <select name="<?= $rec['id']; ?>" id="<?= $rec['id']; ?>">
-                <option value="" <?php if(!isset($rec3['condition_level'])){ ?> selected <?php } ?> >--選択して下さい--</option>
+                <option value="" <?php if(is_null($rec3['condition_level'])){ ?> selected <?php } ?> >--選択して下さい--</option>
                 <option value="0" <?php if(isset($rec3['condition_level'])){ ?> selected <?php } ?>>0</option>
                 <option value="1" <?php if($rec3['condition_level'] == 1){ ?> selected <?php } ?>>1</option>
                 <option value="2" <?php if($rec3['condition_level'] == 2){ ?> selected <?php } ?>>2</option>
@@ -475,15 +478,15 @@
                 $dbh4 = null;
                 $rec4 = $stmt4->fetch(PDO::FETCH_ASSOC);
             
-                $id = "id" . $rec4['id'];
-            ?>
+                $yellow_id = "id" . $rec4['id'];
+                ?>
             <input type="hidden" name="monitoring_id" value="<?= $monitoring_id; ?>">
-            <input type="hidden" name="<?= $id; ?>" value="<?= $rec4['id']; ?>">
+            <input type="hidden" name="<?= $yellow_id; ?>" value="<?= $rec4['id']; ?>">
             <h5>
             <label for="<?= $rec['id']; ?>"><?php print $rec['item']; ?></label>
             </h5>
             <select name="<?= $rec['id']; ?>" id="<?= $rec['id']; ?>">
-                <option value="" <?php if(!isset($rec4['condition_level'])){ ?> selected <?php } ?> >--選択して下さい--</option>
+                <option value="" <?php if(is_null($rec4['condition_level'])){ ?> selected <?php } ?> >--選択して下さい--</option>
                 <option value="0" <?php if(isset($rec4['condition_level'])){ ?> selected <?php } ?>>0</option>
                 <option value="1" <?php if($rec4['condition_level'] == 1){ ?> selected <?php } ?>>1</option>
                 <option value="2" <?php if($rec4['condition_level'] == 2){ ?> selected <?php } ?>>2</option>

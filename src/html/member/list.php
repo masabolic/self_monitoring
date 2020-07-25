@@ -99,9 +99,8 @@
                     if($rec['color'] == 0){
                 ?> <th> <?php print $rec['item'] ?> </th>
                 <?php }
-                } 
-            ?>
-            <?php 
+                }
+
                 $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                 $user = 'root';
                 $password = '';
@@ -208,6 +207,36 @@
                 <?php } ?> 
                 <th> </th>
                 <th> <?php print $weather_list[$rec["weather"]]; ?> </th>
+                <?php
+                $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                $user2 = 'root';
+                $password2 = '';
+                $dbh2 = new PDO($dsn2, $user2, $password2);
+                $dbh2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+                $sql2 = 'SELECT condition_id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = condition_id WHERE monitoring_id = ?';
+                $stmt2 = $dbh2 -> prepare($sql2);
+                $data2 = [];
+                $data2[] = $rec['id'];
+                $stmt2 -> execute();
+
+                $dbh2 = null;
+
+                while(true) {
+                    $rec2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+                    if($rec2==false){
+                        break;
+                    }
+                    if($rec2['display_unnecessary'] == 1){
+                        continue;
+                    }
+
+                    if($rec2['color'] == 0){
+                ?> <th> <?php print $rec2['condition_level'] ?> </th>
+                <?php }
+                } 
+            ?>
                 <th> <?php print $rec["event1"]; ?> </th>
                 <th> <?php print $rec["event2"]; ?> </th>
                 <th> <?php print $rec["event3"]; ?> </th>

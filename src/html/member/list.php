@@ -61,19 +61,62 @@
     <br><br>
 
     <table border="1">
+        <!-- colorの青と黄のidを配列に入れる -->
+        <?php
+            $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+            $user = 'root';
+            $password = '';
+            $dbh = new PDO($dsn, $user, $password);
+            $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+            $sql = 'SELECT id, display_unnecessary, color FROM physical_condition_items WHERE 1';
+            $stmt = $dbh -> prepare($sql);
+            $stmt -> execute();
+
+            $dbh = null;
+
+            $blue_roop = array();
+            $yellow_roop = array();
+
+            while(true) {
+                $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+                if($rec==false){
+                    break;
+                }
+                if($rec['display_unnecessary'] == 1){
+                    continue;
+                }
+                
+                if($rec['color'] == 0){
+                    $blue_roop[] = $rec['id'];
+                    
+                }elseif($rec['color'] == 2){
+                    $yellow_roop[] = $rec['id'];
+                }
+            }
+            
+        ?>
+
         <tr>
             <th>年月日</th>
             <th>曜日</th>
             <th>睡眠開始時間</th>
             <th>睡眠終了時間</th>
             <th>睡眠合計時間</th>
-            <th>朝起きた時の熟睡感</th>
+            <?php
+                if($abbreviation == 0) { ?>
+                    <th>朝起きた時の熟睡感</th>
+                <?php }else{ ?>
+                    <th>熟睡感</th>
+                <?php } ?>
             <th>昼寝した？？</th>
             <th>昼寝開始時間</th>
             <th>昼寝終了時間</th>
             <th>昼寝合計時間</th>
             <th>天気</th>
             <?php
+                // 青信号の項目をthに書き出す
                 $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                 $user = 'root';
                 $password = '';
@@ -81,7 +124,7 @@
                 $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-                $sql = 'SELECT item, display_unnecessary, color FROM physical_condition_items WHERE 1';
+                $sql = 'SELECT item, short_name, display_unnecessary, color FROM physical_condition_items WHERE 1';
                 $stmt = $dbh -> prepare($sql);
                 $stmt -> execute();
 
@@ -97,10 +140,15 @@
                     }
 
                     if($rec['color'] == 0){
-                ?> <th> <?php print $rec['item'] ?> </th>
-                <?php }
+                        if($abbreviation == 0) {
+                            ?> <th> <?php print $rec['item'] ?> </th>
+                        <?php }else{ 
+                            ?> <th> <?php print $rec['short_name'] ?> </th>
+                        <?php }
+                    }
                 }
 
+                // 黄信号の項目をthに書き出す
                 $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                 $user = 'root';
                 $password = '';
@@ -108,7 +156,7 @@
                 $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-                $sql = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
+                $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE 1';
                 $stmt = $dbh -> prepare($sql);
                 $stmt -> execute();
 
@@ -124,8 +172,12 @@
                     }
 
                     if($rec['color'] == 2) {
-                        ?> <th> <?php print $rec['item'] ?> </th>
-                <?php }
+                        if($abbreviation == 0) {
+                            ?> <th> <?php print $rec['item'] ?> </th>
+                        <?php }else{ 
+                            ?> <th> <?php print $rec['short_name'] ?> </th>
+                        <?php }
+                    }
                 } 
             ?>
             <th>合計</th>
@@ -136,26 +188,38 @@
         </tr>
         <tr>
         <?php
+            // 今日
             $date = new DateTime('now', new \DateTimeZone('Asia/Tokyo'));
             $daytime = $date -> format("Y-m-d");
-            $date -> sub(new DateInterval("P1M"));
-            $before_month = $date -> format("Y-m-d");
-            
+            // １週間前
+            $date -> sub(new DateInterval("P1W"));
+            $before_week = $date -> format("Y-m-d");
+            // １か月前
+            $date2 = new DateTime('now', new \DateTimeZone('Asia/Tokyo'));
+            $date2 -> sub(new DateInterval("P1M"));
+            $before_month = $date2 -> format("Y-m-d");
+
+            // 日付を元に表示
             $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
             $user = 'root';
             $password = '';
             $dbh = new PDO($dsn, $user, $password);
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            $sql = "SELECT id, entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice FROM monitoring  WHERE entries_date >= ? AND entries_date < ? ORDER BY entries_date DESC";
+            $sql = "SELECT id, entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice FROM monitoring  WHERE entries_date >= ? AND entries_date <= ? ORDER BY entries_date DESC";
             $data = [];
-            $data[] = $before_month;
+            if($period == 1) {
+                $data[] = $before_month;
+            }else{
+                $data[] = $before_week;
+            }
             $data[] = $daytime;
             $stmt = $dbh -> prepare($sql);
             $stmt -> execute($data);
 
             $dbh = null;
 
+            // 曜日、熟睡度、昼寝、天気の配列
             $week = array("日", "月", "火", "水", "木", "金", "土");
             $sound = array("", "〇", "✕", "△");
             $sound_nap = array("", "〇", "✕", "？");
@@ -175,11 +239,13 @@
                     $w = (int)$date->format('w');
                 ?>
                 <th> <?php print $week[$w] ?> </th>
+                <!-- 睡眠開始時間の時間だけ -->
                 <?php
                     $date = new DateTime($rec['sleep_start_time']);
                     $sleep_start_time = $date->format('H:i');
                 ?>
                 <th> <?php print $sleep_start_time; ?> </th>
+                <!-- 睡眠終了時間の時間だけ -->
                 <?php
                     $date = new DateTime($rec['sleep_end_time']);
                     $sleep_end_time = $date->format('H:i');
@@ -188,6 +254,7 @@
                 <th> </th>
                 <th> <?php print $sound[$rec["sound_sleep"]]; ?> </th>
                 <th> <?php print $sound_nap[$rec["nap"]]; ?> </th>
+                <!-- 昼寝開始時間(0ばっかの時は記載しない) -->
                 <?php
                     if($rec['nap_start_time'] == "0000-00-00 00:00:00") {
                         ?> <th> </th> <?php
@@ -196,6 +263,7 @@
                         $nap_start_time = $date->format('H:i');
                 ?>
                 <th> <?php print $nap_start_time; ?> </th>
+                <!-- 昼寝終了時間(0ばっかの時は記載しない) -->
                 <?php } 
                     if($rec['nap_end_time'] == "0000-00-00 00:00:00") {
                         ?> <th> </th> <?php
@@ -208,35 +276,104 @@
                 <th> </th>
                 <th> <?php print $weather_list[$rec["weather"]]; ?> </th>
                 <?php
-                $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user2 = 'root';
-                $password2 = '';
-                $dbh2 = new PDO($dsn2, $user2, $password2);
-                $dbh2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                // 青信号のIDをもとに２重ループする
+                foreach( $blue_roop as $value ){
+                    $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                    $user2 = 'root';
+                    $password2 = '';
+                    $dbh2 = new PDO($dsn2, $user2, $password2);
+                    $dbh2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-                $sql2 = 'SELECT condition_id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = condition_id WHERE monitoring_id = ?';
-                $stmt2 = $dbh2 -> prepare($sql2);
-                $data2 = [];
-                $data2[] = $rec['id'];
-                $stmt2 -> execute();
+                    $sql2 = 'SELECT P.id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = condition_id WHERE monitoring_id = ?';
+                    $stmt2 = $dbh2 -> prepare($sql2);
+                    $data2 = [];
+                    $data2[] = $rec['id'];
+                    $stmt2 -> execute($data2);
 
-                $dbh2 = null;
+                    $dbh2 = null;
 
-                while(true) {
-                    $rec2 = $stmt2->fetch(PDO::FETCH_ASSOC);
-                    if($rec2==false){
-                        break;
-                    }
-                    if($rec2['display_unnecessary'] == 1){
-                        continue;
-                    }
+                    $roop_flag = false;
 
-                    if($rec2['color'] == 0){
-                ?> <th> <?php print $rec2['condition_level'] ?> </th>
-                <?php }
-                } 
-            ?>
+                    while(true) {
+                        $rec2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+                        if($rec2==false){
+                            // $value == $rec2['id']がない場合は、空白が入るようにする。
+                            if($roop_flag == false) {
+                                ?> <th> </th> <?php   
+                            }
+                            break;
+                        }
+
+                        // 必要とされていない項目は表示しない。
+                        if($rec2['display_unnecessary'] == 1){
+                            continue;
+                        }
+
+                        // 青信号のIDが一致するときに通る。
+                        if($value == $rec2['id'] ) {
+                            if($rec2['condition_level'] == 5){
+                                ?> <th>-</th>
+                            <?php }else{
+                                ?> <th> <?php print $rec2['condition_level'] ?> </th>
+                            <?php }
+
+                            // condition_levelsのデータベースにデータが記載されているか確認
+                            $roop_flag = true;
+                        }
+                    } 
+                }
+
+                // 黄信号の合計の初期化
+                $yellow_total = 0;
+
+                // 黄信号のIDをもとに２重ループする
+                foreach( $yellow_roop as $v ){
+                    $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                    $user3 = 'root';
+                    $password3 = '';
+                    $dbh3 = new PDO($dsn3, $user3, $password3);
+                    $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+                    $sql3 = 'SELECT condition_id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = condition_id WHERE monitoring_id = ?';
+                    $stmt3 = $dbh3 -> prepare($sql3);
+                    $data3 = [];
+                    $data3[] = $rec['id'];
+                    $stmt3 -> execute($data3);
+
+                    $dbh3 = null;
+
+                    $roop_flag = false;
+
+                    while(true) {
+                        $rec3 = $stmt3->fetch(PDO::FETCH_ASSOC);
+                        if($rec3==false){
+                            // $value == $rec2['id']がない場合は、空白が入るようにする。
+                            if($roop_flag == false) {
+                                ?> <th> </th> <?php   
+                            }
+                            break;
+                        }
+
+                        // 必要とされていない項目は表示しない。
+                        if($rec3['display_unnecessary'] == 1){
+                            continue;
+                        }
+
+                        // 黄信号のIDが一致するときに通る。
+                        if($v == $rec3['condition_id'] ) {
+                            ?> <th> <?php print $rec3['condition_level'] ?> </th>
+
+                            <!-- condition_levelsのデータベースにデータが記載されているか確認 -->
+                            <?php $roop_flag = true;
+
+                            // 黄信号の合計を数える
+                            $yellow_total += $rec3['condition_level'];
+                        }
+                    } 
+                } ?>
+                <th> <?php print $yellow_total; ?> </th>
                 <th> <?php print $rec["event1"]; ?> </th>
                 <th> <?php print $rec["event2"]; ?> </th>
                 <th> <?php print $rec["event3"]; ?> </th>

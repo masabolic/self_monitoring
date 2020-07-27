@@ -13,8 +13,9 @@
         <h1>詳細検索</h1>
     </div>
     <br>
+    <button type="button" onclick="location.href='./selected_screen.php'">最初の画面へ</button>
+
     <form method="post" action="search_result.php">
-    <button type="button" onclick="history.back()">元に戻る</button>
     <br><br>
     
     <h5>

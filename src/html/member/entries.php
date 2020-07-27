@@ -39,6 +39,26 @@
 
         $ok_flag = true;
 
+        $dsn8 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+        $user8 = 'root';
+        $password8 = '';
+        $dbh8 = new PDO($dsn8, $user8, $password8);
+        $dbh8->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        $sql8 = "SELECT entries_date FROM monitoring WHERE entries_date = ?";
+        $data8 = [];
+        $data8[] = $registration_date;
+        $stmt8 = $dbh8 -> prepare($sql8);
+        $stmt8 -> execute($data8);
+
+        $dbh8 = null;
+
+        $rec8 = $stmt8->fetch(PDO::FETCH_ASSOC);
+        if(isset($rec8['entries_date'])) {
+            print "✓　恐れ⼊りますが、その日は記録されています。編集で記入ください。<br>";
+            $ok_flag = false;
+        }
+
         // エラー
         if(strlen($event1) > 100 || strlen($event2) > 100 || strlen($event3) > 100) {
             print "✓　恐れ⼊りますが、出来事は100⽂字以内でご⼊⼒ください。<br>";
@@ -333,9 +353,9 @@
             </h5>
             <select name="<?= $item_id; ?>" id="<?= $item_id; ?>">
                 <option value="" selected >--選択して下さい--</option>
-                <option value="0" <?php if(is_numeric($post[$item_id])) {  ?> selected <?php } ?> >0</option>
+                <option value="0" <?php if(isset($post[$item_id]) && is_numeric($post[$item_id])) {  ?> selected <?php } ?> >0</option>
                 <?php foreach ($signal_list as $v => $value) : ?>
-                    <option value="<?= $v ?>" <?php if($post[$item_id] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
+                    <option value="<?= $v ?>" <?php if(isset($post[$item_id]) && $post[$item_id] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
                 <?php endforeach ?>
                 <option value="5">-</option>
             </select>
@@ -386,9 +406,9 @@
                 </h5>
                 <select name="<?= $yellow_item_id; ?>" id="<?= $yellow_item_id; ?>">
                     <option value="" selected >--選択して下さい--</option>
-                    <option value="0" <?php if(is_numeric($post[$yellow_item_id])) {  ?> selected <?php } ?> >0</option>
+                    <option value="0" <?php if(isset($post[$yellow_item_id]) && is_numeric($post[$yellow_item_id])) {  ?> selected <?php } ?> >0</option>
                     <?php foreach ($signal_list as $v => $value) : ?>
-                        <option value="<?= $v ?>" <?php if($post[$yellow_item_id] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
+                        <option value="<?= $v ?>" <?php if(isset($post[$yellow_item_id]) && $post[$yellow_item_id] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
                     <?php endforeach ?>
                 </select>
                 <br>

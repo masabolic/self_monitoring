@@ -17,18 +17,23 @@
 
     <form method="post" action="search_result.php">
     <br><br>
-    
+
+    <?php
+        $week = array("日", "月", "火", "水", "木", "金", "土");
+        $sound = array("", "〇", "✕", "△");
+        $weather_list = array(
+            '0' => '', '1' => '晴れ', '2' => '晴れ時々曇り', '3' => '晴れ時々雨', '4' => '晴れのち曇り',
+            '5' => '晴れのち雨', '6' => '雨', '7' => '雨時々晴れ', '8' => '雨時々曇り', '9' => '雨のち晴れ', '10' => '雨のち曇り',
+            '11' => '曇り', '12' => '曇り時々晴れ', '13' => '曇り時々雨', '14' => '曇りのち晴れ', '15' => '曇りのち雨',
+        );
+    ?>
     <h5>
     <label for="weekday">曜日</label>
     <select name="weekday" id="weekday">
-        <option value="" selected>　　</option>
-        <option value="0">月</option>
-        <option value="1">火</option>
-        <option value="2">水</option>
-        <option value="3">木</option>
-        <option value="4">金</option>
-        <option value="5">土</option>
-        <option value="6">日</option>
+    <option value="" selected>　　</option>
+        <?php foreach($week as $w => $k) { ?>
+            <option value=<?= $w ?> ><?php print $k ?></option>
+        <?php } ?>
     </select>
     </h5><br>
 
@@ -36,7 +41,7 @@
         <label for="start_day">日付</label>
         <input type="datetime-local" name="start_day" id="start_day">
         ～
-        <input type="datetime-local" name="start_day" id="start_day">
+        <input type="datetime-local" name="end_day">
     </h5><br><br>
     
     <h5>
@@ -62,10 +67,9 @@
     <h5>
         <label for="sound_sleep">朝起きた時の熟睡度</label>
         <select name="sound_sleep" id="sound_sleep">
-            <option value="" selected>　　</option>
-            <option value="0">〇</option>
-            <option value="1">✕</option>
-            <option value="2">△</option>
+            <?php foreach($sound as $s => $d) { ?>
+                <option value=<?= $s ?> ><?php print $d ?></option>
+            <?php } ?>
         </select>
     </h5><br>
     
@@ -80,17 +84,12 @@
     </h5><br><br>
 
     <?php
+    
     // 信号リスト
-    $signal_list = [
-        0 => '0', 1 => '1', 2 => '2', 3 => '3', 4 => '4',
-    ];
+    $signal_list = array(
+        '1' => '1', '2' => '2', '3' => '3', '4' => '4',
+    );
 
-    // 天気
-    $weather = [
-        0 => '晴れ', 1 => '晴れ時々曇り', 2 => '晴れ時々雨', 3 => '晴れのち曇り', 4 => '晴れのち雨',
-        5 => '雨', 6 => '雨時々晴れ', 7 => '雨時々曇り', 8 => '雨のち晴れ', 9 => '雨のち曇り',
-        10 => '曇り', 11 => '曇り時々晴れ', 12 => '曇り時々雨', 13 => '曇りのち晴れ', 14 => '曇りのち雨',  
-    ];
     ?>
     
     <h2>青信号</h2>
@@ -106,44 +105,62 @@
 
     <h5>
     <label for="blue_signal">青信号全体</label>
-    <select name="blue_signal" id="blue_signal">
-        <option value="" selected>　　</option>
-        <option value="-">-</option>
-        <option value="0">0</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-    </select>
+        <select name="blue_signal" id="blue_signal">
+            <option value="" selected>　　</option>
+            <option value="0" <?php if(isset($post[$item_id]) && is_numeric($post[$item_id])) {  ?> selected <?php } ?> >0</option>
+            <?php foreach ($signal_list as $v => $value) : ?>
+                <option value="<?= $v ?>" <?php if(isset($post[$item_id]) && $post[$item_id] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
+            <?php endforeach ?>
+            <option value="5">-</option>
+        </select>
     </h5>
     <br>
 
-    <h5>
-    <label for="TV">TV(漫画)が楽しめている</label>
-    <select name="TV" id="TV">
-        <option value="" selected>　　</option>
-        <option value="-">-</option>
-        <option value="0">0</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-    </select>
-    </h5>
-    <br>
+    <?php
+        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+        $user = 'root';
+        $password = '';
+        $dbh = new PDO($dsn, $user, $password);
+        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    <h5>
-    <label for="book">本が３０分読める</label>
-    <select name="book" id="book">
-        <option value="" selected>　　</option>
-        <option value="-">-</option>
-    <?php foreach ($signal_list as $v) : ?>
-        <option value="<?= $v ?>"><?= $v ?></option>
-    <?php endforeach ?>
-    </select>
-    </h5>
-    <br>
-    <br>
+
+        $sql3 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
+        $stmt3 = $dbh -> prepare($sql3);
+        $stmt3 -> execute();
+
+        $dbh = null;
+
+        
+        while(true) {
+            $rec = $stmt3->fetch(PDO::FETCH_ASSOC);
+            if($rec==false){
+                break;
+            }
+            if($rec['display_unnecessary'] == 1){
+                continue;
+            }
+
+            if($rec['color'] == 0){
+    
+            $item_id = $rec['id']
+            ?>
+            <h5>
+                <input type="hidden" name="id" value="<?= $rec['id']; ?>">
+                <label for="<?= $item_id; ?>"><?php print $rec['item']; ?></label>
+                <select name="<?= $item_id; ?>" id="<?= $item_id; ?>">
+                    <option value="" selected >　　</option>
+                    <option value="0" <?php if(isset($post[$item_id]) && is_numeric($post[$item_id])) {  ?> selected <?php } ?> >0</option>
+                    <?php foreach ($signal_list as $v => $value) : ?>
+                        <option value="<?= $v ?>" <?php if(isset($post[$item_id]) && $post[$item_id] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
+                    <?php endforeach ?>
+                    <option value="5">-</option>
+                </select>
+            </h5>
+            <br>
+            <br>
+            <?php } 
+        } ?>
+        <br><br>
 
 
     <h2>黄信号</h2>
@@ -173,117 +190,51 @@
     </h5>
     <br>
     
-    <h5>
-    <label for="sleepy">眠い。欠伸する。</label>
-    <select name="sleepy" id="sleepy">
-        <option value="" selected>　　</option>
-    <?php foreach ($signal_list as $v) : ?>
-        <option value="<?= $v ?>"><?= $v ?></option>
-    <?php endforeach ?>
-    </select>
-    <select name="sleepy_up_down" id="sleepy_up_down">
-        <option value="" selected>　　</option>
-        <option value="0">以下</option>
-        <option value="1">以上</option>
-    </select>
-    </h5>
-    <br>
+    <?php 
+        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+        $user = 'root';
+        $password = '';
+        $dbh = new PDO($dsn, $user, $password);
+        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    <h5>
-    <label for="motivation">やる気がない</label>
-    <select name="motivation" id="motivation">
-        <option value="" selected>　　</option>
-    <?php foreach ($signal_list as $v) : ?>
-        <option value="<?= $v ?>"><?= $v ?></option>
-    <?php endforeach ?>
-    </select>
-    <select name="motivation_up_down" id="motivation_up_down">
-        <option value="" selected>　　</option>
-        <option value="0">以下</option>
-        <option value="1">以上</option>
-    </select>
-    </h5>
-    <br>
 
-    <h5>
-    <label for="loose">金遣いがルーズになる</label>
-    <select name="loose" id="loose">
-        <option value="" selected>　　</option>
-    <?php foreach ($signal_list as $v) : ?>
-        <option value="<?= $v ?>"><?= $v ?></option>
-    <?php endforeach ?>
-    </select>
-    <select name="loose_up_down" id="loose_up_down">
-        <option value="" selected>　　</option>
-        <option value="0">以下</option>
-        <option value="1">以上</option>
-    </select>
-    </h5>
-    <br>
+        $sql = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
+        $stmt = $dbh -> prepare($sql);
+        $stmt -> execute();
 
-    <h5>
-    <label for="appetite">食欲が異常に湧く</label>
-    <select name="appetite" id="appetite">
-        <option value="" selected>　　</option>
-    <?php foreach ($signal_list as $v) : ?>
-        <option value="<?= $v ?>"><?= $v ?></option>
-    <?php endforeach ?>
-    </select>
-    <select name="appetite_up_down" id="appetite_up_down">
-        <option value="" selected>　　</option>
-        <option value="0">以下</option>
-        <option value="1">以上</option>
-    </select>
-    </h5>
-    <br>
+        $dbh = null;
+        
+        while(true) {
+            $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+            if($rec==false){
+                break;
+            }
+            if($rec['display_unnecessary'] == 1){
+                continue;
+            }
 
-    <h5>
-    <label for="smile">ニヤニヤが止まらない</label>
-    <select name="smile" id="smile">
-        <option value="" selected>　　</option>
-    <?php foreach ($signal_list as $v) : ?>
-        <option value="<?= $v ?>"><?= $v ?></option>
-    <?php endforeach ?>
-    </select>
-    <select name="smile_up_down" id="smile_up_down">
-        <option value="" selected>　　</option>
-        <option value="0">以下</option>
-        <option value="1">以上</option>
-    </select>
-    </h5>
-    <br>
-
-    <h5>
-    <label for="frustration">イライラ・モヤモヤ</label>
-    <select name="frustration" id="frustration">
-        <option value="" selected>　　</option>
-    <?php foreach ($signal_list as $v) : ?>
-        <option value="<?= $v ?>"><?= $v ?></option>
-    <?php endforeach ?>
-    </select>
-    <select name="frustration_up_down" id="frustration_up_down">
-        <option value="" selected>　　</option>
-        <option value="0">以下</option>
-        <option value="1">以上</option>
-    </select>
-    </h5>
-    <br>
-
-    <h5>
-    <label for="auditory_hallucination">幻聴、首のそわそわ</label>
-    <select name="auditory_hallucination" id="auditory_hallucination">
-        <option value="" selected>　　</option>
-        <?php foreach ($signal_list as $v) : ?>
-            <option value="<?= $v ?>"><?= $v ?></option>
-        <?php endforeach ?>
-    </select>
-    <select name="hallucination_up_down" id="hallucination_up_down">
-        <option value="" selected>　　</option>
-        <option value="0">以下</option>
-        <option value="1">以上</option>
-    </select>
-    </h5>
-    <br>
+            if($rec['color'] == 2) {
+                $yellow_item_id = $rec['id'];
+                $up_down = 'up_down' . $rec['id'];
+            ?>
+            <h5>
+            <label for="<?= $yellow_item_id; ?>"><?php print $rec['item']; ?></label>
+            <select name="<?= $yellow_item_id; ?>" id="<?= $yellow_item_id; ?>">
+                <option value="" selected >　　</option>
+                <option value="0" <?php if(isset($post[$yellow_item_id]) && is_numeric($post[$yellow_item_id])) {  ?> selected <?php } ?> >0</option>
+                <?php foreach ($signal_list as $v => $value) : ?>
+                    <option value="<?= $v ?>" <?php if(isset($post[$yellow_item_id]) && $post[$yellow_item_id] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
+                <?php endforeach ?>
+            </select>
+            <select name="<?= $up_down ?>">
+                <option value="" selected>　　</option>
+                <option value="0">以下</option>
+                <option value="1">以上</option>
+            </select>
+            </h5>
+            <br>
+            <?php }
+        } ?>    
     
     <h5>
     <label for="condition">体調・精神信号</label>
@@ -308,8 +259,8 @@
     <label for="weather">天気</label>
     <select name="weather" id="weather">
         <option value="" selected>　　</option>
-        <?php foreach ($weather as $v) : ?>
-            <option value="<?= $v ?>"><?= $v ?></option>
+        <?php foreach ($weather_list as $W => $r) : ?>
+            <option value="<?= $w ?>"><?php print $r; ?></option>
         <?php endforeach ?>
     </select>
     </h5>

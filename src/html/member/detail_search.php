@@ -39,9 +39,9 @@
 
     <h5>
         <label for="start_day">日付</label>
-        <input type="datetime-local" name="start_day" id="start_day">
+        <input type="date" name="start_day" id="start_day">
         ～
-        <input type="datetime-local" name="end_day">
+        <input type="date" name="end_day">
     </h5><br><br>
     
     <h5>
@@ -107,9 +107,9 @@
     <label for="blue_signal">青信号全体</label>
         <select name="blue_signal" id="blue_signal">
             <option value="" selected>　　</option>
-            <option value="0" <?php if(isset($post[$item_id]) && is_numeric($post[$item_id])) {  ?> selected <?php } ?> >0</option>
+            <option value="0" <?php if(isset($post[$signal_list]) && is_numeric($post[$signal_list])) {  ?> selected <?php } ?> >0</option>
             <?php foreach ($signal_list as $v => $value) : ?>
-                <option value="<?= $v ?>" <?php if(isset($post[$item_id]) && $post[$item_id] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
+                <option value="<?= $v ?>" <?php if(isset($post[$signal_list]) && $post[$signal_list] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
             <?php endforeach ?>
             <option value="5">-</option>
         </select>
@@ -142,7 +142,7 @@
 
             if($rec['color'] == 0){
     
-            $item_id = $rec['id']
+            $item_id = 'signal' . $rec['id']
             ?>
             <h5>
                 <input type="hidden" name="id" value="<?= $rec['id']; ?>">
@@ -182,7 +182,7 @@
         <option value="<?= $v ?>"><?= $v ?></option>
     <?php endforeach ?>
     </select>
-    <select name="yellow_up_down" id="yellow_up_down    ">
+    <select name="yellow_up_down" id="yellow_up_down">
         <option value="" selected>　　</option>
         <option value="0">以下</option>
         <option value="1">以上</option>
@@ -214,10 +214,11 @@
             }
 
             if($rec['color'] == 2) {
-                $yellow_item_id = $rec['id'];
+                $yellow_item_id = 'signal' . $rec['id'];
                 $up_down = 'up_down' . $rec['id'];
             ?>
             <h5>
+            <input type="hidden" name="id" value="<?= $rec['id']; ?>">
             <label for="<?= $yellow_item_id; ?>"><?php print $rec['item']; ?></label>
             <select name="<?= $yellow_item_id; ?>" id="<?= $yellow_item_id; ?>">
                 <option value="" selected >　　</option>
@@ -239,7 +240,7 @@
     <h5>
     <label for="condition">体調・精神信号</label>
     <select name="condition" id="condition">
-        <option value="" selected>　　</option>
+        <option value="" selected>　</option>
         <option value="0">青</option>
         <option value="1">緑</option>
         <option value="2">黄</option>

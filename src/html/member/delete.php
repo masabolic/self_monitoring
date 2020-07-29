@@ -143,9 +143,10 @@
             $dbh = new PDO($dsn, $user, $password);
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            $sql = "SELECT id, entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice FROM monitoring  WHERE entries_date = ?";
+            $sql = "SELECT id, entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice FROM monitoring  WHERE entries_date = ? AND 	is_deleted = ?";
             $data = [];
             $data[] = $day;
+            $data[] = 0;
             $stmt = $dbh -> prepare($sql);
             $stmt -> execute($data);
 
@@ -311,7 +312,7 @@
     </table>
 
         <form method="post" action="deleting_fixed.php">
-            <input type="hidden" name="date" value="<?= $rec['id']; ?>">
+            <input type="hidden" name="id" value="<?= $rec['id']; ?>">
             <input type="hidden" name="date" value="<?= $day; ?>">
             <h3>削除していいですか？？</h3>
             <input type="submit" value="削除確定">

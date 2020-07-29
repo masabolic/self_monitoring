@@ -22,7 +22,7 @@
         $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-        $sql = 'UPDATE monitoring_id SET is_deleted=? WHERE id = ?';
+        $sql = 'UPDATE monitoring SET is_deleted=? WHERE id = ?';
         $stmt = $dbh -> prepare($sql);
         $data = [];
         $data[] = 1;

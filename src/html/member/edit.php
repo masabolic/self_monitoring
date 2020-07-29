@@ -206,8 +206,8 @@
             $_SESSION['spirit_signal'] = $spirit_signal;
             $_SESSION['monitoring_id'] = $monitoring_id;
 
-            // header('Location: condition.php');
-            // exit();
+            header('Location: condition.php');
+            exit();
         }
     }
 
@@ -234,9 +234,10 @@
     $dbh2 = new PDO($dsn2, $user2, $password2);
     $dbh2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    $sql2 = "SELECT id, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice FROM monitoring WHERE entries_date = ?";
+    $sql2 = "SELECT id, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice FROM monitoring WHERE entries_date = ? AND is_deleted = ?";
     $data2 = [];
     $data2[] = $_SESSION['date'];
+    $data2[] = 0;
     $stmt2 = $dbh2 -> prepare($sql2);
     $stmt2 -> execute($data2);
 
@@ -271,13 +272,13 @@
     <div class="row">
         <div class="col-2"><label for="sleep_start_time">睡眠開始時間</label></div>
         <div class="col-2">
-            <input type="datetime-local" name="sleep_start_time" id="sleep_start_time" value="<?= $sleep_start_time ?>">
+            <input type="datetime-local" name="sleep_start_time" id="sleep_start_time" value="<?= $sleep_start_time_default ?>">
         </div>
     </div>
     <div class="row">
         <div class="col-2"><label for="sleep_end_time">睡眠終了時間</label></div>
         <div class="col-2">
-            <input type="datetime-local" name="sleep_end_time" id="sleep_end_time" value="<?= $sleep_end_time ?>">
+            <input type="datetime-local" name="sleep_end_time" id="sleep_end_time" value="<?= $sleep_end_time_default ?>">
         </div>
     </div>
     <br>
@@ -285,19 +286,19 @@
     <div class="row">
         <div class="col-2">朝起きた時の熟睡感</div>
         <div class="col-2">
-            <input type="radio" name="sound_sleep" id="no_answer" value="0" <?php if($sound_sleep == 0) { ?> checked='checked' <?php } ?> >
+            <input type="radio" name="sound_sleep" id="no_answer" value="0" <?php if($sound_sleep_default == 0) { ?> checked='checked' <?php } ?> >
             <label for="no_answer">未回答</label>
         </div>
         <div class="col-2">
-            <input type="radio" name="sound_sleep" id="yes_sleep" value="1" <?php if($sound_sleep == 1) { ?> checked='checked' <?php } ?> >
+            <input type="radio" name="sound_sleep" id="yes_sleep" value="1" <?php if($sound_sleep_default == 1) { ?> checked='checked' <?php } ?> >
             <label for="yes_sleep">〇：ある</label>
         </div>
         <div class="col-2">
-            <input type="radio" name="sound_sleep" id="no_sleep" value="2" <?php if($sound_sleep == 2) { ?> checked='checked' <?php } ?> >
+            <input type="radio" name="sound_sleep" id="no_sleep" value="2" <?php if($sound_sleep_default == 2) { ?> checked='checked' <?php } ?> >
             <label for="no_sleep">✕：ない</label>
         </div>
         <div class="col-4">
-            <input type="radio" name="sound_sleep" id="not_know_sleep" value="3" <?php if($sound_sleep == 3) { ?> checked='checked' <?php } ?> >
+            <input type="radio" name="sound_sleep" id="not_know_sleep" value="3" <?php if($sound_sleep_default == 3) { ?> checked='checked' <?php } ?> >
             <label for="not_know_sleep">△：どちらともいえない</label>
         </div>
     </div>
@@ -306,19 +307,19 @@
     <div class="row">
         <div class="col-2">昼寝した？？</div>
         <div class="col-2">
-            <input type="radio" name="nap" id="no_answer_nap" value="0" <?php if($nap == 0) { ?> checked='checked' <?php } ?> >
+            <input type="radio" name="nap" id="no_answer_nap" value="0" <?php if($nap_default == 0) { ?> checked='checked' <?php } ?> >
             <label for="no_answer">未回答</label>
         </div>
         <div class="col-2">
-            <input type="radio" name="nap" id="yes_nap" value="1" <?php if($nap == 1) { ?> checked='checked' <?php } ?> >
+            <input type="radio" name="nap" id="yes_nap" value="1" <?php if($nap_default == 1) { ?> checked='checked' <?php } ?> >
             <label for="yes_nap">〇：はい</label>
         </div>
         <div class="col-2">
-            <input type="radio" name="nap" id="no_nap" value="2" <?php if($nap == 2) { ?> checked='checked' <?php } ?> >
+            <input type="radio" name="nap" id="no_nap" value="2" <?php if($nap_default == 2) { ?> checked='checked' <?php } ?> >
             <label for="no_nap">✕：いいえ</label>
         </div>
         <div class="col-2">
-            <input type="radio" name="nap" id="not_know_nap" value="3" <?php if($nap == 3) { ?> checked='checked' <?php } ?> >
+            <input type="radio" name="nap" id="not_know_nap" value="3" <?php if($nap_default == 3) { ?> checked='checked' <?php } ?> >
             <label for="not_know_nap">？：忘れた</label>
         </div>
     </div>
@@ -327,13 +328,13 @@
     <div class="row">
         <div class="col-2"><label for="nap_start_time">昼寝開始時間</label></div>
         <div class="col-2">
-            <input type="datetime-local" name="nap_start_time" id="nap_start_time" value="<?php if(!empty($nap_start_time)) { print $nap_start_time; }?>" >
+            <input type="datetime-local" name="nap_start_time" id="nap_start_time" value="<?php if(!empty($nap_start_time_default)) { print $nap_start_time_default; }?>" >
         </div>
     </div>
     <div class="row">
         <div class="col-2"><label for="nap_end_time">昼寝終了時間</label></div>
         <div class="col-2">
-            <input type="datetime-local" name="nap_end_time" id="nap_end_time" value="<?php if(!empty($nap_end_time)) { print $nap_end_time; }?>">
+            <input type="datetime-local" name="nap_end_time" id="nap_end_time" value="<?php if(!empty($nap_end_time_default)) { print $nap_end_time_default; }?>">
         </div>
     </div>
     <br>
@@ -480,7 +481,6 @@
             
                 $yellow_id = "id" . $rec4['id'];
                 ?>
-            <input type="hidden" name="monitoring_id" value="<?= $monitoring_id; ?>">
             <input type="hidden" name="<?= $yellow_id; ?>" value="<?= $rec4['id']; ?>">
             <h5>
             <label for="<?= $rec['id']; ?>"><?php print $rec['item']; ?></label>
@@ -507,7 +507,7 @@
     </h5> 
     <select name="weather" id="weather">
         <?php foreach ($weather_list as $v => $value) : ?>
-            <option value="<?= $v ?>" <?php if($weather == $v){ ?> selected <?php } ?> ><?= $value ?></option>
+            <option value="<?= $v ?>" <?php if($weather_default == $v){ ?> selected <?php } ?> ><?= $value ?></option>
         <?php endforeach ?>
     </select>
     <br>
@@ -516,13 +516,13 @@
     <h5>出来事</h5>
     <div class="row">
         <div class="col-3">
-            <input type="text" name="event1" value=<?= $event1 ?> >
+            <input type="text" name="event1" value=<?= $event1_default ?> >
         </div>
         <div class="col-3">
-            <input type="text" name="event2" value=<?= $event2 ?>>
+            <input type="text" name="event2" value=<?= $event2_default ?>>
         </div>
         <div class="col-3">
-            <input type="text" name="event3" value=<?= $event3 ?>>
+            <input type="text" name="event3" value=<?= $event3_default ?>>
         </div>
     </div>
     <br>
@@ -531,7 +531,7 @@
     <h5>
     <label for="notice">気づいたこと</label>
     </h5>
-    <textarea name="notice" id="notice"><?php print $notice; ?></textarea>
+    <textarea name="notice" id="notice"><?php print $notice_default; ?></textarea>
     <br>
     <br>
 

@@ -45,21 +45,27 @@
         $dbh8 = new PDO($dsn8, $user8, $password8);
         $dbh8->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        $sql8 = "SELECT entries_date FROM monitoring WHERE entries_date = ?";
+        $sql8 = "SELECT entries_date, is_deleted FROM monitoring WHERE entries_date = ?";
         $data8 = [];
         $data8[] = $registration_date;
         $stmt8 = $dbh8 -> prepare($sql8);
         $stmt8 -> execute($data8);
 
         $dbh8 = null;
-
-        $rec8 = $stmt8->fetch(PDO::FETCH_ASSOC);
-        if(isset($rec8['entries_date'])) {
-            print "✓　恐れ⼊りますが、その日は記録されています。編集で記入ください。<br>";
-            $ok_flag = false;
+        
+        // エラー
+        while(true) {
+            $rec8 = $stmt8->fetch(PDO::FETCH_ASSOC);
+            if($rec8==false){
+                break;
+            }
+            if(isset($rec8['entries_date']) && $rec8['is_deleted'] == 0) {
+                print "✓　恐れ⼊りますが、その日は記録されています。編集で記入ください。<br>";
+                $ok_flag = false;
+            }
         }
 
-        // エラー
+            
         if(strlen($event1) > 100 || strlen($event2) > 100 || strlen($event3) > 100) {
             print "✓　恐れ⼊りますが、出来事は100⽂字以内でご⼊⼒ください。<br>";
             $ok_flag = false;
@@ -106,9 +112,10 @@
                 $dbh6 = new PDO($dsn6, $user6, $password6);
                 $dbh6->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
-                $sql6 = "SELECT id FROM monitoring WHERE entries_date = ?";
+                $sql6 = "SELECT id FROM monitoring WHERE entries_date = ? AND is_deleted = ?";
                 $data6 = [];
                 $data6[] = $registration_date;
+                $data6[] = 0;
                 $stmt6 = $dbh6 -> prepare($sql6);
                 $stmt6 -> execute($data6);
 

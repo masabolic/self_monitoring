@@ -64,17 +64,79 @@
                     $hi = $i;
                     break;
                     }
-                    ?> <td><a href="./edit.php?date=<?= $yearmonth."0".$i; ?>"><?php print $i?></a></td> <?php
+                    $special_date = $yearmonth."0".$i;
+
+                    $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                    $user = 'root';
+                    $password = '';
+                    $dbh = new PDO($dsn, $user, $password);
+                    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+                    $sql = 'SELECT entries_date, is_deleted FROM monitoring WHERE entries_date = ?';
+                    $data = [];
+                    $data[] = $special_date;
+                    $stmt = $dbh -> prepare($sql);
+                    $stmt -> execute($data);
+
+                    $dbh = null;
+                    $special_roop = 0;
+
+                    while(true) {
+                        $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if($rec==false){
+                            if($special_roop == 0) {
+                                ?> <td> <?php print $i ?></td><?php
+                            }
+                            break;
+                        }
+                        if($rec['is_deleted'] == 1){
+                            continue;
+                        }
+
+                        ?> <td><a href="./edit.php?date=<?= $special_date; ?>"><?php print $i?></a></td> <?php
+                    }
                 }
                 ?> </tr> <?php
                 $count = 0;
                 for($i = $hi; $i <= $days; $i++){
                     $count++;
                     if($i < 10){
-                    ?> <td><a href="./edit.php?date=<?= $yearmonth."0".$i; ?>"><?php print $i?></a></td> <?php
+                        $special_date = $yearmonth."0".$i;
                     }else{
-                    ?> <td><a href="./edit.php?date=<?= $yearmonth.$i; ?>"><?php print $i?></a></td> <?php
+                        $special_date = $yearmonth.$i;
                     }
+
+                    $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                    $user = 'root';
+                    $password = '';
+                    $dbh = new PDO($dsn, $user, $password);
+                    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+                    $sql = 'SELECT entries_date, is_deleted FROM monitoring WHERE entries_date = ?';
+                    $data = [];
+                    $data[] = $special_date;
+                    $stmt = $dbh -> prepare($sql);
+                    $stmt -> execute($data);
+
+                    $dbh = null;
+                    $special_roop = 0;
+
+                    while(true) {
+                        $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if($rec==false){
+                            if($special_roop == 0) {
+                                ?> <td> <?php print $i ?></td><?php
+                            }
+                            break;
+                        }
+                        if($rec['is_deleted'] == 1){
+                            continue;
+                        }
+
+                        ?> <td><a href="./edit.php?date=<?= $special_date; ?>"><?php print $i?></a></td> <?php
+                        $special_roop++;
+                    }
+
                     if($count == 7){
                         $count = 0;
                         ?> </tr> <?php

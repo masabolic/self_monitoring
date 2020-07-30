@@ -278,7 +278,7 @@
                 ?>
                 <th> <?php print $nap_start_time; ?> </th>
                 <?php } ?> 
-                <th><?php print $interval2->format('%H:%I');?></th>
+                <th><?php print $interval2->format('%H:%I'); ?></th>
                 <th> <?php print $weather_list[$rec["weather"]]; ?> </th>
                 <?php
                 // 青信号のIDをもとに２重ループする

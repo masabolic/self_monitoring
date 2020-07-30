@@ -220,7 +220,7 @@
                 $start_day = $post['start_day'];
                 $start_day = $post['start_day'];
                 
-                // 日付を元に表示
+                //　検索をする
                 $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                 $user = 'root';
                 $password = '';
@@ -228,23 +228,61 @@
                 $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
                 $sql = "";
-                $sql .= "SELECT id, entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice FROM monitoring  WHERE is_deleted = ?";
+                $sql .= "SELECT DISTINCT entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice ";
+                // if(!empty($blue_signal)){
+                    $sql .= ", M.id, condition_id, condition_level FROM condition_levels C RIGHT JOIN monitoring M ON M.id = C.monitoring_id RIGHT JOIN physical_condition_items P ON P.id = C.condition_id";
+                // }else{
+                //     $sql .= ", id FROM monitoring "; 
+                // }
+                $sql .= " WHERE is_deleted = ? ";
                 if(!empty($start_day)) {
-                    $sql .= "AND entries_date >= ?";
+                    $sql .= "AND entries_date >= ? ";
                 }
                 if(!empty($end_day)) {
-                    $sql .= "AND entries_date <= ?";
+                    $sql .= "AND entries_date <= ? ";
                 }
                 if(!empty($start_to_sleep)){
-                    $sql .= "AND sleep_start_time LIKE ?";
+                    $sql .= "AND sleep_start_time LIKE ? ";
                 }
                 if(!empty($end_to_sleep)){
-                    $sql .= "AND sleep_end_time LIKE ?";
+                    $sql .= "AND sleep_end_time LIKE ? ";
                 }
                 if(!empty($sound_sleep)){
-                    $sql .= "AND sound_sleep = ?";
+                    $sql .= "AND sound_sleep = ? ";
                 }
-                $sql .= "ORDER BY entries_date DESC";
+                if(!empty($blue_signal)){
+                    $sql .= "AND (";
+                    $dsn4 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                    $user4 = 'root';
+                    $password4 = '';
+                    $dbh4 = new PDO($dsn4, $user4, $password4);
+                    $dbh4->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                    $sql4 = 'SELECT P.id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = C.condition_id WHERE 1';
+                    $stmt4 = $dbh4 -> prepare($sql4);
+                    $stmt4 -> execute();
+
+                    $dbh4 = null;
+
+                    while(true) {
+                        $rec4 = $stmt4->fetch(PDO::FETCH_ASSOC);
+                        if($rec4==false){
+                            $sql = rtrim($sql, "OR");
+                            $sql .= ")";
+                            break;
+                        }
+                        if($rec4['display_unnecessary'] == 1){
+                            continue;
+                        }
+                        if($rec4['color'] == 0) {
+                            if($blue_signal == $rec4['condition_level']){
+                                $sql .= " (condition_id = ? AND condition_level = ?) OR";
+                            }
+                        }
+                    }
+                }
+
+                $sql .= " ORDER BY entries_date DESC";
                 $data = [];
                 $data[] = 0;
                 if(!empty($start_day)) {
@@ -257,11 +295,42 @@
                     $data[] = '%'.$start_to_sleep.':00';
                 }
                 if(!empty($end_to_sleep)) {
-                    $data[] = '%'.$start_to_sleep.':00';
+                    $data[] = '%'.$end_to_sleep.':00';
                 }
                 if(!empty($sound_sleep)) {
                     $data[] = $sound_sleep;
                 }
+                if(!empty($blue_signal)){
+                    $dsn5 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                    $user5 = 'root';
+                    $password5 = '';
+                    $dbh5 = new PDO($dsn5, $user5, $password5);
+                    $dbh5->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                    $sql5 = 'SELECT P.id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = C.condition_id WHERE 1';
+                    $stmt5 = $dbh5 -> prepare($sql5);
+                    $stmt5 -> execute();
+
+                    $dbh5 = null;
+                    
+                    while(true) {
+                        $rec5 = $stmt5->fetch(PDO::FETCH_ASSOC);
+                        if($rec5==false){
+                            break;
+                        }
+                        if($rec5['display_unnecessary'] == 1){
+                            continue;
+                        }
+                        if($rec5['color'] == 0) {
+                            if($blue_signal == $rec5['condition_level']) {
+                                $data[] = $rec5['id'];
+                                $data[] = $blue_signal;
+                            }
+                        }
+                    }
+                }
+                var_dump($sql);
+
                 $stmt = $dbh -> prepare($sql);
                 $stmt -> execute($data);
 
@@ -295,11 +364,12 @@
                     <th> <?php print $sleep_start_time; ?> </th>
                     <!-- 睡眠終了時間の時間だけ -->
                     <?php
-                        $date = new DateTime($rec['sleep_end_time']);
-                        $sleep_end_time = $date->format('H:i');
+                        $date2 = new DateTime($rec['sleep_end_time']);
+                        $sleep_end_time = $date2->format('H:i');
+                        $interval = date_diff($date, $date2);
                     ?>
                     <th> <?php print $sleep_end_time; ?> </th>
-                    <th> </th>
+                    <th> <?php print $interval->format('%H:%I'); ?> </th>
                     <th> <?php print $sound[$rec["sound_sleep"]]; ?> </th>
                     <th> <?php print $sound_nap[$rec["nap"]]; ?> </th>
                     <!-- 昼寝開始時間(0ばっかの時は記載しない) -->
@@ -307,8 +377,8 @@
                         if($rec['nap_start_time'] == "0000-00-00 00:00:00") {
                             ?> <th> </th> <?php
                         }else{
-                            $date = new DateTime($rec['nap_start_time']);
-                            $nap_start_time = $date->format('H:i');
+                            $date3 = new DateTime($rec['nap_start_time']);
+                            $nap_start_time = $date3->format('H:i');
                     ?>
                     <th> <?php print $nap_start_time; ?> </th>
                     <!-- 昼寝終了時間(0ばっかの時は記載しない) -->
@@ -316,12 +386,17 @@
                         if($rec['nap_end_time'] == "0000-00-00 00:00:00") {
                             ?> <th> </th> <?php
                         }else{
-                            $date = new DateTime($rec['nap_end_time']);
-                            $nap_start_time = $date->format('H:i');
+                            $date4 = new DateTime($rec['nap_end_time']);
+                            $nap_start_time = $date4->format('H:i');
+                            $interval2 = date_diff($date3, $date4);
                     ?>
                     <th> <?php print $nap_start_time; ?> </th>
-                    <?php } ?> 
-                    <th> </th>
+                    <?php }
+                    if(($rec['nap_start_time'] == "0000-00-00 00:00:00") || ($rec['nap_end_time'] == "0000-00-00 00:00:00")) {
+                        ?> <th> 00:00 </th>
+                    <?php }else { ?>
+                        <th> <?php print $interval2->format('%H:%I'); ?> </th>
+                    <?php } ?>
                     <th> <?php print $weather_list[$rec["weather"]]; ?> </th>
                     <?php
                     // 青信号のIDをもとに２重ループする

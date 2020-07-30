@@ -142,7 +142,7 @@
 
             if($rec['color'] == 0){
     
-            $item_id = 'signal' . $rec['id']
+            $item_id = 'signal' . $rec['id'];
             ?>
             <h5>
                 <input type="hidden" name="id" value="<?= $rec['id']; ?>">

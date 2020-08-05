@@ -181,6 +181,7 @@
                 } 
             ?>
             <th>合計</th>
+            <th>体調</th>
             <th width="100px">出来事1</th>
             <th width="100px">出来事2</th>
             <th width="100px">出来事3</th>
@@ -206,7 +207,7 @@
             $dbh = new PDO($dsn, $user, $password);
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            $sql = "SELECT id, entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice, is_deleted FROM monitoring  WHERE entries_date >= ? AND entries_date <= ? ORDER BY entries_date DESC";
+            $sql = "SELECT id, entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, spirit_signal, weather, event1, event2, event3, notice, is_deleted FROM monitoring  WHERE entries_date >= ? AND entries_date <= ? ORDER BY entries_date DESC";
             $data = [];
             if($period == 1) {
                 $data[] = $before_month;
@@ -228,6 +229,7 @@
                 '5' => '晴れのち雨', '6' => '雨', '7' => '雨時々晴れ', '8' => '雨時々曇り', '9' => '雨のち晴れ', '10' => '雨のち曇り',
                 '11' => '曇り', '12' => '曇り時々晴れ', '13' => '曇り時々雨', '14' => '曇りのち晴れ', '15' => '曇りのち雨',
             );
+            $condition_list = array("青", "緑", "黄", "橙", "赤", "黒");
             while(true) {
                 $rec = $stmt->fetch(PDO::FETCH_ASSOC);
                 if($rec==false){
@@ -277,8 +279,12 @@
                         $interval2 = date_diff($date3, $date4);
                 ?>
                 <th> <?php print $nap_start_time; ?> </th>
-                <?php } ?> 
-                <th><?php print $interval2->format('%H:%I'); ?></th>
+                <?php } 
+                if(($rec['nap_start_time'] == "0000-00-00 00:00:00") || ($rec['nap_end_time'] == "0000-00-00 00:00:00")) { 
+                    ?> <th> </th> <?php
+                }else{ ?>
+                    <th><?php print $interval2->format('%H:%I'); ?></th>
+                <?php } ?>
                 <th> <?php print $weather_list[$rec["weather"]]; ?> </th>
                 <?php
                 // 青信号のIDをもとに２重ループする
@@ -379,6 +385,7 @@
                     } 
                 } ?>
                 <th> <?php print $yellow_total; ?> </th>
+                <th> <?php print $condition_list[$rec["spirit_signal"]]; ?> </th>
                 <th> <?php print $rec["event1"]; ?> </th>
                 <th> <?php print $rec["event2"]; ?> </th>
                 <th> <?php print $rec["event3"]; ?> </th>

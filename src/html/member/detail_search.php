@@ -107,9 +107,9 @@
     <label for="blue_signal">青信号全体</label>
         <select name="blue_signal" id="blue_signal">
             <option value="" selected>　　</option>
-            <option value="0" <?php if(isset($post[$signal_list]) && is_numeric($post[$signal_list])) {  ?> selected <?php } ?> >0</option>
+            <option value="0">0</option>
             <?php foreach ($signal_list as $v => $value) : ?>
-                <option value="<?= $v ?>" <?php if(isset($post[$signal_list]) && $post[$signal_list] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
+                <option value="<?= $v ?>" ><?= $value ?></option>
             <?php endforeach ?>
             <option value="5">-</option>
         </select>
@@ -117,45 +117,44 @@
     <br>
 
     <?php
-        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user = 'root';
-        $password = '';
-        $dbh = new PDO($dsn, $user, $password);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+        $user3 = 'root';
+        $password3 = '';
+        $dbh3 = new PDO($dsn3, $user3, $password3);
+        $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
         $sql3 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
-        $stmt3 = $dbh -> prepare($sql3);
+        $stmt3 = $dbh3 -> prepare($sql3);
         $stmt3 -> execute();
 
-        $dbh = null;
+        $dbh3 = null;
 
         
         while(true) {
-            $rec = $stmt3->fetch(PDO::FETCH_ASSOC);
-            if($rec==false){
+            $rec3 = $stmt3->fetch(PDO::FETCH_ASSOC);
+            if($rec3==false){
                 break;
             }
-            if($rec['display_unnecessary'] == 1){
+            if($rec3['display_unnecessary'] == 1){
                 continue;
             }
 
-            if($rec['color'] == 0){
-    
-            $item_id = 'signal' . $rec['id'];
-            ?>
-            <h5>
-                <input type="hidden" name="id" value="<?= $rec['id']; ?>">
-                <label for="<?= $item_id; ?>"><?php print $rec['item']; ?></label>
-                <select name="<?= $item_id; ?>" id="<?= $item_id; ?>">
-                    <option value="" selected >　　</option>
-                    <option value="0" <?php if(isset($post[$item_id]) && is_numeric($post[$item_id])) {  ?> selected <?php } ?> >0</option>
-                    <?php foreach ($signal_list as $v => $value) : ?>
-                        <option value="<?= $v ?>" <?php if(isset($post[$item_id]) && $post[$item_id] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
-                    <?php endforeach ?>
-                    <option value="5">-</option>
-                </select>
-            </h5>
+            if($rec3['color'] == 0){
+                $item_id = 'signal' . $rec3['id'];
+                ?>
+                <h5>
+                    <input type="hidden" name="<?= $rec3['id']; ?>" value="<?= $rec3['id']; ?>">
+                    <label for="<?= $item_id; ?>"><?php print $rec3['item']; ?></label>
+                    <select name="<?= $item_id; ?>" id="<?= $item_id; ?>">
+                        <option value="" selected >　　</option>
+                        <option value="0">0</option>
+                        <?php foreach ($signal_list as $v => $value) : ?>
+                            <option value="<?= $v ?>" ><?= $value ?></option>
+                        <?php endforeach ?>
+                        <option value="5">-</option>
+                    </select>
+                </h5>
             <br>
             <br>
             <?php } 
@@ -178,6 +177,7 @@
     <label for="yellow_signal">黄信号全体</label>
     <select name="yellow_signal" id="yellow_signal">
         <option value="" selected>　　</option>
+        <option value="0">0</option>
     <?php foreach ($signal_list as $v) : ?>
         <option value="<?= $v ?>"><?= $v ?></option>
     <?php endforeach ?>
@@ -218,7 +218,7 @@
                 $up_down = 'up_down' . $rec['id'];
             ?>
             <h5>
-            <input type="hidden" name="id" value="<?= $rec['id']; ?>">
+            <input type="hidden" name="<?= $rec['id']; ?>" value="<?= $rec['id']; ?>">
             <label for="<?= $yellow_item_id; ?>"><?php print $rec['item']; ?></label>
             <select name="<?= $yellow_item_id; ?>" id="<?= $yellow_item_id; ?>">
                 <option value="" selected >　　</option>

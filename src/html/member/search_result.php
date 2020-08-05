@@ -187,6 +187,7 @@
                 } 
             ?>
             <th>合計</th>
+            <th>体調</th>
             <th width="100px">出来事1</th>
             <th width="100px">出来事2</th>
             <th width="100px">出来事3</th>
@@ -219,6 +220,7 @@
                 $event = $post['event'];
                 $start_day = $post['start_day'];
                 $start_day = $post['start_day'];
+                $signal_flag = false;
                 
                 //　検索をする
                 $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
@@ -228,9 +230,9 @@
                 $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
                 $sql = "";
-                $sql .= "SELECT DISTINCT entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice ";
+                $sql .= "SELECT entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, spirit_signal, weather, event1, event2, event3, notice ";
                 // if(!empty($blue_signal)){
-                    $sql .= ", M.id, condition_id, condition_level FROM condition_levels C RIGHT JOIN monitoring M ON M.id = C.monitoring_id RIGHT JOIN physical_condition_items P ON P.id = C.condition_id";
+                    $sql .= ", M.id, condition_id, condition_level FROM monitoring M JOIN condition_levels C ON M.id = C.monitoring_id";
                 // }else{
                 //     $sql .= ", id FROM monitoring "; 
                 // }
@@ -250,15 +252,18 @@
                 if(!empty($sound_sleep)){
                     $sql .= "AND sound_sleep = ? ";
                 }
-                if(!empty($blue_signal)){
-                    $sql .= "AND (";
+                if(is_numeric($blue_signal) || is_numeric($yellow_signal)){
+                    if($signal_flag == false) {
+                        $sql .= "AND (condition_id, condition_level) in (";
+                        $signal_flag = true;
+                    } 
                     $dsn4 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                     $user4 = 'root';
                     $password4 = '';
                     $dbh4 = new PDO($dsn4, $user4, $password4);
                     $dbh4->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-                    $sql4 = 'SELECT P.id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = C.condition_id WHERE 1';
+                    $sql4 = 'SELECT DISTINCT P.id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = C.condition_id WHERE 1';
                     $stmt4 = $dbh4 -> prepare($sql4);
                     $stmt4 -> execute();
 
@@ -267,19 +272,74 @@
                     while(true) {
                         $rec4 = $stmt4->fetch(PDO::FETCH_ASSOC);
                         if($rec4==false){
-                            $sql = rtrim($sql, "OR");
-                            $sql .= ")";
                             break;
                         }
                         if($rec4['display_unnecessary'] == 1){
                             continue;
                         }
-                        if($rec4['color'] == 0) {
+                        if($rec4['color'] == 0 && is_numeric($blue_signal)) {
                             if($blue_signal == $rec4['condition_level']){
-                                $sql .= " (condition_id = ? AND condition_level = ?) OR";
+                                $sql .= " (?,?) ,";
+                            }
+                        }elseif($rec4['color'] == 2 && is_numeric($yellow_signal)) {
+                            if($yellow_signal == $rec4['condition_level']){
+                                $sql .= "(?,?) ,";
                             }
                         }
                     }
+                }
+                
+                $dsn6 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                $user6 = 'root';
+                $password6 = '';
+                $dbh6 = new PDO($dsn6, $user6, $password6);
+                $dbh6->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                $sql6 = 'SELECT P.id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = C.condition_id WHERE 1';
+                $stmt6 = $dbh6 -> prepare($sql6);
+                $stmt6 -> execute();
+
+                $dbh6 = null;
+                $condition_flag = false;
+
+                while(true) {
+                    $rec6 = $stmt6->fetch(PDO::FETCH_ASSOC);
+                    if($rec6==false){
+                        if($condition_flag == true){
+                            $sql .= "(?,?),";
+                        }
+                        break;
+                    }
+                    $physical_id = '';
+                    if($rec6['color'] == 0 || $rec6['color'] == 2) {
+                        if(is_numeric($post[$rec6['id']])) {
+                            $physical_id = $post[$rec6['id']];
+                            $item_id = 'signal' . $physical_id;
+                            $signal_name = $post[$item_id];
+                            if(is_numeric($signal_name)){
+                                if($signal_flag == false) {
+                                    $sql .= "AND (condition_id, condition_level) in (";
+                                    $signal_flag = true;
+                                    $condition_flag = true;
+                                }
+                                if($rec6['display_unnecessary'] == 1){
+                                    continue;
+                                }
+                                if($physical_id == $rec6['id']){
+                                    if($signal_name == $rec6['condition_level']) {
+                                        $sql .= "(?,?),";
+                                        $condition_flag = false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                if($signal_flag == true) {
+                    $sql = rtrim($sql, ",");
+                    $sql .= ")";
                 }
 
                 $sql .= " ORDER BY entries_date DESC";
@@ -300,14 +360,14 @@
                 if(!empty($sound_sleep)) {
                     $data[] = $sound_sleep;
                 }
-                if(!empty($blue_signal)){
+                if(is_numeric($blue_signal) || is_numeric($yellow_signal)){
                     $dsn5 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                     $user5 = 'root';
                     $password5 = '';
                     $dbh5 = new PDO($dsn5, $user5, $password5);
                     $dbh5->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-                    $sql5 = 'SELECT P.id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = C.condition_id WHERE 1';
+                    $sql5 = 'SELECT DISTINCT P.id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = C.condition_id WHERE 1';
                     $stmt5 = $dbh5 -> prepare($sql5);
                     $stmt5 -> execute();
 
@@ -321,16 +381,63 @@
                         if($rec5['display_unnecessary'] == 1){
                             continue;
                         }
-                        if($rec5['color'] == 0) {
+                        if($rec5['color'] == 0 && is_numeric($blue_signal)) {
                             if($blue_signal == $rec5['condition_level']) {
                                 $data[] = $rec5['id'];
                                 $data[] = $blue_signal;
                             }
+                        }elseif($rec5['color'] == 2 && is_numeric($yellow_signal)) {
+                            if($yellow_signal == $rec5['condition_level']){
+                                $data[] = $rec5['id'];
+                                $data[] = $yellow_signal;
+                            }
                         }
                     }
                 }
-                var_dump($sql);
 
+                $dsn7 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                $user7 = 'root';
+                $password7 = '';
+                $dbh7 = new PDO($dsn7, $user7, $password7);
+                $dbh7->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                $sql7 = 'SELECT P.id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = C.condition_id WHERE 1';
+                $stmt7 = $dbh7 -> prepare($sql7);
+                $stmt7 -> execute();
+
+                $dbh7 = null;
+                
+                while(true) {
+                    $rec7 = $stmt7->fetch(PDO::FETCH_ASSOC);
+                    if($rec7==false){
+                        if($condition_flag == true){
+                            $data[] = $rec7['id'];
+                            $data[] = $signal_name;
+                        }
+                        break;
+                    }
+                    $physical_id = '';
+                    if($rec7['color'] == 0 || $rec7['color'] == 2) {
+                        if(is_numeric($post[$rec7['id']])) {
+                            $physical_id = $post[$rec7['id']];
+                            $item_id = 'signal' . $physical_id;
+                            $signal_name = $post[$item_id];
+                            if(is_numeric($signal_name)){
+                                if($rec7['display_unnecessary'] == 1){
+                                    continue;
+                                }
+                                if($physical_id == $rec7['id']){
+                                    if($signal_name == $rec7['condition_level']) {
+                                        $data[] = $rec7['id'];
+                                        $data[] = $signal_name;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                var_dump($sql);
                 $stmt = $dbh -> prepare($sql);
                 $stmt -> execute($data);
 
@@ -345,11 +452,17 @@
                     '5' => '晴れのち雨', '6' => '雨', '7' => '雨時々晴れ', '8' => '雨時々曇り', '9' => '雨のち晴れ', '10' => '雨のち曇り',
                     '11' => '曇り', '12' => '曇り時々晴れ', '13' => '曇り時々雨', '14' => '曇りのち晴れ', '15' => '曇りのち雨',
                 );
+                $condition_list = array("青", "緑", "黄", "橙", "赤", "黒");
+                $same_id = 0;
                 while(true) {
                     $rec = $stmt->fetch(PDO::FETCH_ASSOC);
                     if($rec==false){
                         break;
                     }
+                    if($same_id == $rec['id']){
+                        continue;
+                    }
+                    $same_id = $rec['id'];
                     ?> <th> <?php print $rec['entries_date'] ?> </th>
                     <?php
                         $date = new DateTime($rec['entries_date']);
@@ -497,6 +610,7 @@
                         } 
                     } ?>
                     <th> <?php print $yellow_total; ?> </th>
+                    <th> <?php print $condition_list[$rec["spirit_signal"]]; ?> </th>
                     <th> <?php print $rec["event1"]; ?> </th>
                     <th> <?php print $rec["event2"]; ?> </th>
                     <th> <?php print $rec["event3"]; ?> </th>

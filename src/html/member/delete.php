@@ -129,6 +129,7 @@
                 } 
             ?>
             <th>合計</th>
+            <th>体調</th>
             <th width="100px">出来事1</th>
             <th width="100px">出来事2</th>
             <th width="100px">出来事3</th>
@@ -143,7 +144,7 @@
             $dbh = new PDO($dsn, $user, $password);
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            $sql = "SELECT id, entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice FROM monitoring  WHERE entries_date = ? AND 	is_deleted = ?";
+            $sql = "SELECT id, entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, spirit_signal, event1, event2, event3, notice FROM monitoring  WHERE entries_date = ? AND 	is_deleted = ?";
             $data = [];
             $data[] = $day;
             $data[] = 0;
@@ -161,6 +162,7 @@
                 '5' => '晴れのち雨', '6' => '雨', '7' => '雨時々晴れ', '8' => '雨時々曇り', '9' => '雨のち晴れ', '10' => '雨のち曇り',
                 '11' => '曇り', '12' => '曇り時々晴れ', '13' => '曇り時々雨', '14' => '曇りのち晴れ', '15' => '曇りのち雨',
             );
+            $condition_list = array("青", "緑", "黄", "橙", "赤", "黒");
 
             $rec = $stmt->fetch(PDO::FETCH_ASSOC);
             ?> <th> <?php print $day ?> </th>
@@ -304,6 +306,7 @@
                 } 
             } ?>
             <th> <?php print $yellow_total; ?> </th>
+            <th> <?php print $condition_list[$rec["spirit_signal"]]; ?> </th>
             <th> <?php print $rec["event1"]; ?> </th>
             <th> <?php print $rec["event2"]; ?> </th>
             <th> <?php print $rec["event3"]; ?> </th>

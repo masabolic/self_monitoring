@@ -207,7 +207,7 @@
             $dbh = new PDO($dsn, $user, $password);
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            $sql = "SELECT id, entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, spirit_signal, weather, event1, event2, event3, notice, is_deleted FROM monitoring  WHERE entries_date >= ? AND entries_date <= ? ORDER BY entries_date DESC";
+            $sql = "SELECT id, entries_date, weekday, sleep_start_time, sleep_end_time, sleep_sum, sound_sleep, nap, nap_start_time, nap_end_time, nap_sum, spirit_signal, weather, event1, event2, event3, notice, is_deleted FROM monitoring  WHERE entries_date >= ? AND entries_date <= ? ORDER BY entries_date DESC";
             $data = [];
             if($period == 1) {
                 $data[] = $before_month;
@@ -239,11 +239,7 @@
                     continue;
                 }
                 ?> <th> <?php print $rec['entries_date'] ?> </th>
-                <?php
-                    $date = new DateTime($rec['entries_date']);
-                    $w = (int)$date->format('w');
-                ?>
-                <th> <?php print $week[$w] ?> </th>
+                <th> <?php print $week[$rec['weekday']] ?> </th>
                 <!-- 睡眠開始時間の時間だけ -->
                 <?php
                     $date = new DateTime($rec['sleep_start_time']);
@@ -254,10 +250,11 @@
                 <?php
                     $date2 = new DateTime($rec['sleep_end_time']);
                     $sleep_end_time = $date2->format('H:i');
-                    $interval = date_diff($date, $date2);
+                    $date6 = new DateTime($rec['sleep_sum']);
+                    $sleep_sum = $date6->format('H:i');
                 ?>
                 <th> <?php print $sleep_end_time; ?> </th>
-                <th> <?php print $interval->format('%H:%I'); ?></th>
+                <th> <?php print $sleep_sum; ?></th>
                 <th> <?php print $sound[$rec["sound_sleep"]]; ?> </th>
                 <th> <?php print $sound_nap[$rec["nap"]]; ?> </th>
                 <!-- 昼寝開始時間(0ばっかの時は記載しない) -->
@@ -276,14 +273,15 @@
                     }else{
                         $date4 = new DateTime($rec['nap_end_time']);
                         $nap_start_time = $date4->format('H:i');
-                        $interval2 = date_diff($date3, $date4);
                 ?>
                 <th> <?php print $nap_start_time; ?> </th>
                 <?php } 
-                if(($rec['nap_start_time'] == "0000-00-00 00:00:00") || ($rec['nap_end_time'] == "0000-00-00 00:00:00")) { 
+                $date5 = new DateTime($rec['nap_sum']);
+                $nap_sum = $date5->format('H:i');
+                if($nap_sum == "00:00") { 
                     ?> <th> </th> <?php
                 }else{ ?>
-                    <th><?php print $interval2->format('%H:%I'); ?></th>
+                    <th><?php print $nap_sum; ?></th>
                 <?php } ?>
                 <th> <?php print $weather_list[$rec["weather"]]; ?> </th>
                 <?php

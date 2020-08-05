@@ -204,13 +204,16 @@
             $abbreviation = 0;
 
             if(isset($post)) {
+                $weekday = $post['weekday'];
                 $start_day = $post['start_day'];
                 $end_day = $post['end_day'];
                 $start_to_sleep = $post['start_to_sleep'];
                 $end_to_sleep = $post['end_to_sleep'];
                 $sleep_total = $post['sleep_total'];
+                $sleep_up_down = $post['sleep_up_down'];
                 $sound_sleep = $post['sound_sleep'];
                 $nap_total = $post['nap_total'];
+                $nap_up_down = $post['nap_up_down'];
                 $blue_signal = $post['blue_signal'];
                 $yellow_signal = $post['yellow_signal'];
                 $yellow_up_down = $post['yellow_up_down'];
@@ -218,8 +221,6 @@
                 $condition_up_down = $post['condition_up_down'];
                 $weather = $post['weather'];
                 $event = $post['event'];
-                $start_day = $post['start_day'];
-                $start_day = $post['start_day'];
                 $signal_flag = false;
                 
                 //　検索をする
@@ -230,13 +231,16 @@
                 $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
                 $sql = "";
-                $sql .= "SELECT entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, spirit_signal, weather, event1, event2, event3, notice ";
+                $sql .= "SELECT entries_date, weekday, sleep_start_time, sleep_end_time, sleep_sum, sound_sleep, nap, nap_start_time, nap_end_time, nap_sum, spirit_signal, weather, event1, event2, event3, notice ";
                 // if(!empty($blue_signal)){
                     $sql .= ", M.id, condition_id, condition_level FROM monitoring M JOIN condition_levels C ON M.id = C.monitoring_id";
                 // }else{
                 //     $sql .= ", id FROM monitoring "; 
                 // }
                 $sql .= " WHERE is_deleted = ? ";
+                if(is_numeric($weekday)) {
+                    $sql .= "AND weekday = ? ";
+                }
                 if(!empty($start_day)) {
                     $sql .= "AND entries_date >= ? ";
                 }
@@ -249,12 +253,30 @@
                 if(!empty($end_to_sleep)){
                     $sql .= "AND sleep_end_time LIKE ? ";
                 }
+                if(!empty($sleep_total)){
+                    if(is_numeric($sleep_up_down) && $sleep_up_down == 0) {
+                        $sql .= "AND sleep_sum <= ? ";
+                    }elseif($sleep_up_down == 1) {
+                        $sql .= "AND sleep_sum >= ? ";
+                    }else{
+                        $sql .= "AND sleep_sum = ? ";
+                    }
+                }
                 if(!empty($sound_sleep)){
                     $sql .= "AND sound_sleep = ? ";
                 }
+                if(!empty($nap_total)) {
+                    if(is_numeric($nap_up_down) && $nap_up_down == 0) {
+                        $sql .= "AND nap_sum <= ? ";
+                    }elseif($nap_up_down == 1) {
+                        $sql .= "AND nap_sum >= ? ";
+                    }else{
+                        $sql .= "AND nap_sum = ? ";
+                    }
+                }
                 if(is_numeric($blue_signal) || is_numeric($yellow_signal)){
                     if($signal_flag == false) {
-                        $sql .= "AND (condition_id, condition_level) in (";
+                        $sql .= "AND (";
                         $signal_flag = true;
                     } 
                     $dsn4 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
@@ -279,11 +301,17 @@
                         }
                         if($rec4['color'] == 0 && is_numeric($blue_signal)) {
                             if($blue_signal == $rec4['condition_level']){
-                                $sql .= " (?,?) ,";
+                                $sql .= " (condition_id=? AND condition_level=? ) OR";
                             }
                         }elseif($rec4['color'] == 2 && is_numeric($yellow_signal)) {
                             if($yellow_signal == $rec4['condition_level']){
-                                $sql .= "(?,?) ,";
+                                if(is_numeric($yellow_up_down) && $yellow_up_down == 0) {
+                                    $sql .= " (condition_id=? AND condition_level<=? ) OR";
+                                }elseif($yellow_up_down == 1) {
+                                    $sql .= " (condition_id=? AND condition_level>=? ) OR";
+                                }else{
+                                    $sql .= " (condition_id=? AND condition_level=? ) OR";
+                                }
                             }
                         }
                     }
@@ -306,7 +334,7 @@
                     $rec6 = $stmt6->fetch(PDO::FETCH_ASSOC);
                     if($rec6==false){
                         if($condition_flag == true){
-                            $sql .= "(?,?),";
+                            $sql .= " (condition_id=? OR condition_level=?)";
                         }
                         break;
                     }
@@ -316,9 +344,14 @@
                             $physical_id = $post[$rec6['id']];
                             $item_id = 'signal' . $physical_id;
                             $signal_name = $post[$item_id];
+                            $up_down = 'up_down' . $physical_id;
+                            $signal_up_down = '';
+                            if($rec6['color'] == 2) {
+                                $signal_up_down = $post[$up_down];
+                            }
                             if(is_numeric($signal_name)){
                                 if($signal_flag == false) {
-                                    $sql .= "AND (condition_id, condition_level) in (";
+                                    $sql .= "AND (";
                                     $signal_flag = true;
                                     $condition_flag = true;
                                 }
@@ -327,8 +360,16 @@
                                 }
                                 if($physical_id == $rec6['id']){
                                     if($signal_name == $rec6['condition_level']) {
-                                        $sql .= "(?,?),";
+                                        if($rec6['color'] == 2){
+                                            if(is_numeric($signal_up_down) && $signal_up_down == 0) {
+                                                $sql .= " (condition_id=? AND condition_level<=? ) OR";
+                                            }elseif($signal_up_down == 1) {
+                                                $sql .= " (condition_id=? AND condition_level>=? ) OR";
+                                            }
+                                        }else{
+                                        $sql .= " (condition_id=? AND condition_level=? ) OR";
                                         $condition_flag = false;
+                                        }
                                     }
                                 }
                             }
@@ -338,13 +379,32 @@
 
 
                 if($signal_flag == true) {
-                    $sql = rtrim($sql, ",");
+                    $sql = rtrim($sql, "OR");
                     $sql .= ")";
                 }
 
+                if(!empty($condition)) {
+                    if(is_numeric($condition_up_down) && $condition_up_down == 0) {
+                        $sql .= "AND spirit_signal <= ? ";
+                    }elseif($condition_up_down == 1) {
+                        $sql .= "AND spirit_signal >= ? ";
+                    }else{
+                        $sql .= "AND spirit_signal = ? ";
+                    }   
+                }
+                if(!empty($weather)) {
+                    $sql .= "AND weather = ? ";
+                }
+                if(!empty($event)) {
+                    $sql .= "AND ( event1 LIKE ? OR event2 LIKE ? OR event3 LIKE ? ) ";
+                }
                 $sql .= " ORDER BY entries_date DESC";
+
                 $data = [];
                 $data[] = 0;
+                if(is_numeric($weekday)) {
+                    $data[] = $weekday;
+                }
                 if(!empty($start_day)) {
                     $data[] = $start_day;
                 }
@@ -357,8 +417,14 @@
                 if(!empty($end_to_sleep)) {
                     $data[] = '%'.$end_to_sleep.':00';
                 }
+                if(!empty($sleep_total)){
+                    $data[] = $sleep_total;
+                }
                 if(!empty($sound_sleep)) {
                     $data[] = $sound_sleep;
+                }
+                if(!empty($nap_total)) {
+                    $data[] = $nap_total;
                 }
                 if(is_numeric($blue_signal) || is_numeric($yellow_signal)){
                     $dsn5 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
@@ -436,6 +502,17 @@
                         }
                     }
                 }
+                if(!empty($condition)) {
+                        $data[] = $condition;
+                }
+                if(!empty($weather)) {
+                    $data[] = $weather;
+                }
+                if(!empty($event)){
+                    $data[] = '%'.$event.'%';
+                    $data[] = '%'.$event.'%';
+                    $data[] = '%'.$event.'%';
+                }
 
                 var_dump($sql);
                 $stmt = $dbh -> prepare($sql);
@@ -464,11 +541,7 @@
                     }
                     $same_id = $rec['id'];
                     ?> <th> <?php print $rec['entries_date'] ?> </th>
-                    <?php
-                        $date = new DateTime($rec['entries_date']);
-                        $w = (int)$date->format('w');
-                    ?>
-                    <th> <?php print $week[$w] ?> </th>
+                    <th> <?php print $week[$rec['weekday']] ?> </th>
                     <!-- 睡眠開始時間の時間だけ -->
                     <?php
                         $date = new DateTime($rec['sleep_start_time']);
@@ -479,10 +552,11 @@
                     <?php
                         $date2 = new DateTime($rec['sleep_end_time']);
                         $sleep_end_time = $date2->format('H:i');
-                        $interval = date_diff($date, $date2);
+                        $date6 = new DateTime($rec['sleep_sum']);
+                        $sleep_sum = $date6->format('H:i');
                     ?>
                     <th> <?php print $sleep_end_time; ?> </th>
-                    <th> <?php print $interval->format('%H:%I'); ?> </th>
+                    <th> <?php print $sleep_sum; ?> </th>
                     <th> <?php print $sound[$rec["sound_sleep"]]; ?> </th>
                     <th> <?php print $sound_nap[$rec["nap"]]; ?> </th>
                     <!-- 昼寝開始時間(0ばっかの時は記載しない) -->
@@ -504,11 +578,13 @@
                             $interval2 = date_diff($date3, $date4);
                     ?>
                     <th> <?php print $nap_start_time; ?> </th>
-                    <?php }
-                    if(($rec['nap_start_time'] == "0000-00-00 00:00:00") || ($rec['nap_end_time'] == "0000-00-00 00:00:00")) {
-                        ?> <th> 00:00 </th>
-                    <?php }else { ?>
-                        <th> <?php print $interval2->format('%H:%I'); ?> </th>
+                        <?php }
+                    $date5 = new DateTime($rec["nap_sum"]);
+                    $nap_sum = $date5->format('H:i');
+                    if($nap_sum == "00:00") { 
+                        ?> <th> </th> <?php
+                    }else{ ?>
+                        <th><?php print $nap_sum; ?></th>
                     <?php } ?>
                     <th> <?php print $weather_list[$rec["weather"]]; ?> </th>
                     <?php
@@ -620,22 +696,7 @@
             </tr>
             <?php } 
         } ?>
-    
-
-
-
-
-
-
-
-
-    </table>
-
-
-
-
-
-
+</table>
 </div>
 
 </body>

@@ -13,6 +13,7 @@
         <h1>編集</h1>
     </div>
     <br>
+    <button type="button" onclick="location.href='./selected_screen.php'">最初の画面へ</button>
     <button type="button" onclick="history.back()">元に戻る</button>
 
     <?php
@@ -24,13 +25,28 @@
 
     if(isset($post)) {
         $entries_date = $_SESSION['date'];
+        $date5 = new DateTime($entries_date);
+        $weekday = (int)$date5->format('w');
+
         $monitoring_id = $post['monitoring_id'];
         $sleep_start_time = $post['sleep_start_time'];
         $sleep_end_time = $post['sleep_end_time'];
+
+        $date = new DateTime($sleep_start_time);
+        $date2 = new DateTime($sleep_end_time);
+        $interval = date_diff($date, $date2);
+        $sleep_sum = $interval->format('%H:%I');
+
         $sound_sleep = $post['sound_sleep'];
         $nap = $post['nap'];
         $nap_start_time = $post['nap_start_time'];
         $nap_end_time = $post['nap_end_time'];
+
+        $date3 = new DateTime($nap_start_time);
+        $date4 = new DateTime($nap_end_time);
+        $interval2 = date_diff($date3, $date4);
+        $nap_sum = $interval2->format('%H:%I');
+
         $weather = $post['weather'];
         $event1 = $post['event1'];
         $event2 = $post['event2'];
@@ -51,6 +67,16 @@
             $ok_flag = false;
         }
 
+        if($sleep_start_time > $sleep_end_time) {
+            print "✓　恐れ⼊りますが、睡眠開始時間が睡眠終了時間より遅いです。<br>";
+            $ok_flag = false;
+        }
+
+        if($nap_start_time > $nap_end_time) {
+            print "✓　恐れ⼊りますが、昼寝開始時間が昼寝終了時間より遅いです。<br>";
+            $ok_flag = false;
+        }
+
         // SQLに登録    
         if($ok_flag == true) {
             // monitoringをアップデート
@@ -60,15 +86,18 @@
             $dbh = new PDO($dsn, $user, $password);
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            $sql = 'UPDATE monitoring SET sleep_start_time=?, sleep_end_time=?, sound_sleep=?, nap=?, nap_start_time=?, nap_end_time=?, weather=?, event1=?, event2=?, event3=?, notice=? WHERE id = ? ';
+            $sql = 'UPDATE monitoring SET weekday=?, sleep_start_time=?, sleep_end_time=?, sleep_sum=?, sound_sleep=?, nap=?, nap_start_time=?, nap_end_time=?, nap_sum=?, weather=?, event1=?, event2=?, event3=?, notice=? WHERE id = ? ';
             $stmt = $dbh -> prepare($sql);
             $data = [];
+            $data[] = $weekday;
             $data[] = $sleep_start_time;
             $data[] = $sleep_end_time;
+            $data[] = $sleep_sum;
             $data[] = $sound_sleep;
             $data[] = $nap;
             $data[] = $nap_start_time;
             $data[] = $nap_end_time;
+            $data[] = $nap_sum;
             $data[] = $weather;
             $data[] = $event1;
             $data[] = $event2;
@@ -393,16 +422,19 @@
 
 
                 $sql3 = 'SELECT id, condition_level FROM condition_levels WHERE monitoring_id = ? AND condition_id = ?';
-                $data = [];
-                $data[] = $monitoring_id;
-                $data[] = $rec['id'];
+                $data3 = [];
+                $data3[] = $monitoring_id;
+                $data3[] = $rec['id'];
                 $stmt3 = $dbh3 -> prepare($sql3);
-                $stmt3 -> execute($data);
+                $stmt3 -> execute($data3);
 
                 $dbh3 = null;
                 $rec3 = $stmt3->fetch(PDO::FETCH_ASSOC);
 
-                $blue_id = "id" . $rec3['id'];
+                $blue_id = "";
+                if(isset($rec3['id'])) {
+                    $blue_id = "id" . $rec3['id'];
+                }
             ?>
             <h5>
             <input type="hidden" name="monitoring_id" value="<?= $monitoring_id; ?>">
@@ -410,13 +442,13 @@
             <label for="<?= $rec['id']; ?>"><?php print $rec['item']; ?></label>
             </h5>
             <select name="<?= $rec['id']; ?>" id="<?= $rec['id']; ?>">
-                <option value="" <?php if(is_null($rec3['condition_level'])){ ?> selected <?php } ?> >--選択して下さい--</option>
+                <option value="" <?php if(!isset($rec3['condition_level']) || is_null($rec3['condition_level'])){ ?> selected <?php } ?> >--選択して下さい--</option>
                 <option value="0" <?php if(isset($rec3['condition_level'])){ ?> selected <?php } ?>>0</option>
-                <option value="1" <?php if($rec3['condition_level'] == 1){ ?> selected <?php } ?>>1</option>
-                <option value="2" <?php if($rec3['condition_level'] == 2){ ?> selected <?php } ?>>2</option>
-                <option value="3" <?php if($rec3['condition_level'] == 3){ ?> selected <?php } ?>>3</option>
-                <option value="4" <?php if($rec3['condition_level'] == 4){ ?> selected <?php } ?>>4</option>
-                <option value="5" <?php if($rec3['condition_level'] == 5){ ?> selected <?php } ?>>-</option>
+                <option value="1" <?php if(isset($rec3['condition_level']) && $rec3['condition_level'] == 1){ ?> selected <?php } ?>>1</option>
+                <option value="2" <?php if(isset($rec3['condition_level']) && $rec3['condition_level'] == 2){ ?> selected <?php } ?>>2</option>
+                <option value="3" <?php if(isset($rec3['condition_level']) && $rec3['condition_level'] == 3){ ?> selected <?php } ?>>3</option>
+                <option value="4" <?php if(isset($rec3['condition_level']) && $rec3['condition_level'] == 4){ ?> selected <?php } ?>>4</option>
+                <option value="5" <?php if(isset($rec3['condition_level']) && $rec3['condition_level'] == 5){ ?> selected <?php } ?>>-</option>
             </select>
             <br>
             <br>
@@ -470,28 +502,31 @@
 
 
                 $sql4 = 'SELECT id, condition_level FROM condition_levels WHERE monitoring_id = ? AND condition_id = ?';
-                $data = [];
-                $data[] = $monitoring_id;
-                $data[] = $rec['id'];
+                $data4 = [];
+                $data4[] = $monitoring_id;
+                $data4[] = $rec['id'];
                 $stmt4 = $dbh4 -> prepare($sql4);
-                $stmt4 -> execute($data);
+                $stmt4 -> execute($data4);
 
                 $dbh4 = null;
                 $rec4 = $stmt4->fetch(PDO::FETCH_ASSOC);
             
-                $yellow_id = "id" . $rec4['id'];
+                $yellow_id = "";
+                if(isset($rec4['id'])) {
+                    $yellow_id = "id" . $rec4['id'];
+                }
                 ?>
             <input type="hidden" name="<?= $yellow_id; ?>" value="<?= $rec4['id']; ?>">
             <h5>
             <label for="<?= $rec['id']; ?>"><?php print $rec['item']; ?></label>
             </h5>
             <select name="<?= $rec['id']; ?>" id="<?= $rec['id']; ?>">
-                <option value="" <?php if(is_null($rec4['condition_level'])){ ?> selected <?php } ?> >--選択して下さい--</option>
+                <option value="" <?php if(!isset($rec4['condition_level']) || is_null($rec4['condition_level'])){ ?> selected <?php } ?> >--選択して下さい--</option>
                 <option value="0" <?php if(isset($rec4['condition_level'])){ ?> selected <?php } ?>>0</option>
-                <option value="1" <?php if($rec4['condition_level'] == 1){ ?> selected <?php } ?>>1</option>
-                <option value="2" <?php if($rec4['condition_level'] == 2){ ?> selected <?php } ?>>2</option>
-                <option value="3" <?php if($rec4['condition_level'] == 3){ ?> selected <?php } ?>>3</option>
-                <option value="4" <?php if($rec4['condition_level'] == 4){ ?> selected <?php } ?>>4</option>
+                <option value="1" <?php if(isset($rec4['condition_level']) && $rec4['condition_level'] == 1){ ?> selected <?php } ?>>1</option>
+                <option value="2" <?php if(isset($rec4['condition_level']) && $rec4['condition_level'] == 2){ ?> selected <?php } ?>>2</option>
+                <option value="3" <?php if(isset($rec4['condition_level']) && $rec4['condition_level'] == 3){ ?> selected <?php } ?>>3</option>
+                <option value="4" <?php if(isset($rec4['condition_level']) && $rec4['condition_level'] == 4){ ?> selected <?php } ?>>4</option>
             </select>
             <br>
             <br>

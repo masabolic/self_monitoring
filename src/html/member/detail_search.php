@@ -24,7 +24,7 @@
         $weather_list = array(
             '0' => '', '1' => '晴れ', '2' => '晴れ時々曇り', '3' => '晴れ時々雨', '4' => '晴れのち曇り',
             '5' => '晴れのち雨', '6' => '雨', '7' => '雨時々晴れ', '8' => '雨時々曇り', '9' => '雨のち晴れ', '10' => '雨のち曇り',
-            '11' => '曇り', '12' => '曇り時々晴れ', '13' => '曇り時々雨', '14' => '曇りのち晴れ', '15' => '曇りのち雨',
+            '11' => '曇り', '12' => '曇り時々晴れ', '13' => '曇り時々雨', '14' => '曇りのち晴れ', '15' => '曇りのち雨'
         );
     ?>
     <h5>
@@ -259,9 +259,8 @@
     <h5>
     <label for="weather">天気</label>
     <select name="weather" id="weather">
-        <option value="" selected>　　</option>
-        <?php foreach ($weather_list as $W => $r) : ?>
-            <option value="<?= $w ?>"><?php print $r; ?></option>
+        <?php foreach ($weather_list as $e => $r) : ?>
+            <option value="<?= $e ?>"><?php print $r; ?></option>
         <?php endforeach ?>
     </select>
     </h5>

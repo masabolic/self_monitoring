@@ -23,7 +23,7 @@
         <h1>編集カレンダー</h1>
     </div>
     <br>
-    <button onclick="location.href='./selected_screen.php'">最初の画面へ</button>
+    <button type="button" onclick="location.href='./selected_screen.php'">最初の画面へ</button>
     <br><br>
     <table border="1">
         <tr>

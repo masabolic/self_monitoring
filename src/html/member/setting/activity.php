@@ -24,7 +24,11 @@
         $orenge_act = $post['orenge_act'];
         $red_act = $post['red_act'];
         $black_act = $post['black_act'];
-        $not_activity = $post['not_activity'];
+        if(isset($post['not_activity'])) {
+            $not_activity = $post['not_activity'];
+        }else{
+            $not_activity = 0;
+        }
 
         $act = array("2" => $yellow_act, "3" => $orenge_act, "4" => $red_act, "5" => $black_act);
 
@@ -37,7 +41,7 @@
 
             $sql2 = "SELECT id FROM activity WHERE color = ?";
             $data2 = [];
-            $data2[] = $i
+            $data2[] = $i;
             $stmt2 = $dbh2 -> prepare($sql2);
             $stmt2 -> execute($data2);
 
@@ -45,7 +49,7 @@
 
             $rec2 = $stmt2->fetch(PDO::FETCH_ASSOC);
 
-            if(is_numeric($rec2['id'])) {
+            if(!empty($rec2['id']) && is_numeric($rec2['id'])) {
                 $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                 $user = 'root';
                 $password = '';
@@ -82,7 +86,6 @@
                 $dbh3 = null;
             }
         }
-        
     }
 
       
@@ -94,33 +97,41 @@
     $dbh4->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $sql4 = "SELECT color, activity, do_not_need FROM activity WHERE 1";
-    $data4 = [];
-    $data4[] = $i
     $stmt4 = $dbh4 -> prepare($sql4);
-    $stmt4 -> execute($data4);
+    $stmt4 -> execute();
 
     $dbh4 = null;
+    $color_flag = false;
+    $color_list = [];
+    $do_not_need = 0;
 
     while(true) {
         $rec4 = $stmt4->fetch(PDO::FETCH_ASSOC);
         if($rec4==false){
+            if($color_flag == false){
+            ?>
+            <?php }
             break;
         }
-    
-        ?>
+        $color_flag = true;
+        $color_list[] = $rec4['activity'];
+        $do_not_need = $rec4['do_not_need'];
+    } ?>
 
-        <form method="post" action="../selected_screen.php">
-            <input type="checkbox" name="not_activity" id="not_activity" value="1" <?php if($rec4['do_not_need'] == 1) { ?> checked="checked" <?php } ?> >
+
+
+        <form method="post" action="./activity.php">
+            <input type="checkbox" name="not_activity" id="not_activity" value="1" <?php if($do_not_need == 1) { ?> checked="checked" <?php } ?> >
             <label for="not_activity">行動指針が出てこないようにします（非表示）</label><br><br>
 
-            <p>黄　　　<input type="text" name="yellow_act" <?php isset($post) { ?> value="<?= $yellow_act ?>" <?php }elseif($rec4['color'] == 2) { ?> value="<?= $rec4['activity'] ?>" <?php } ?> > </p><br><br>
-            <p>橙　　　<input type="text" name="orenge_act" <?php isset($post) { ?> value="<?= $orenge_act ?>" <?php }elseif($rec4['color'] == 3) { ?> value="<?= $rec4['activity'] ?>" <?php } ?> > </p><br><br>
-            <p>赤　　　<input type="text" name="red_act" <?php isset($post) { ?> value="<?= $red_act ?>" <?php }elseif($rec4['color'] == 4) { ?> value="<?= $rec4['activity'] ?>" <?php } ?> ></p><br><br>
-            <p>黒　　　<input type="text" name="black_act" <?php isset($post) { ?> value="<?= $black_act ?>" <?php }elseif($rec4['color'] == 5) { ?> value="<?= $rec4['activity'] ?>" <?php } ?> ></p><br><br>
+                <p>黄　　　<input type="text" name="yellow_act" <?php if(isset($post)) { ?> value="<?= $yellow_act ?>" <?php }elseif(isset($color_list[0])) { ?> value="<?= $color_list[0] ?>" <?php } ?> > </p><br><br>
+                <p>橙　　　<input type="text" name="orenge_act" <?php if(isset($post)) { ?> value="<?= $orenge_act ?>" <?php }elseif(isset($color_list[1])) { ?> value="<?= $color_list[1] ?>" <?php } ?> > </p><br><br>
+                <p>赤　　　<input type="text" name="red_act" <?php if(isset($post)) { ?> value="<?= $red_act ?>" <?php }elseif(isset($color_list[2])) { ?> value="<?= $color_list[2] ?>" <?php } ?> ></p><br><br>
+                <p>黒　　　<input type="text" name="black_act" <?php if(isset($post)) { ?> value="<?= $black_act ?>" <?php }elseif(isset($color_list[3])) { ?> value="<?= $color_list[3] ?>" <?php } ?> ></p><br><br>
 
             <input type="submit" value="確定">
+            <button type="button" onclick="location.href='../selected_screen.php'">最初の画面へ</button>
         </form>
-    }
 
 </div>
 

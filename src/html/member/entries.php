@@ -24,12 +24,27 @@
 
     if(isset($post)) {
         $registration_date = $post['registration_date'];
+        $date = new DateTime($post['registration_date']);
+        $weekday = (int)$date->format('w');
+
         $sleep_start_time = $post['sleep_start_time'];
         $sleep_end_time = $post['sleep_end_time'];
+
+        $date = new DateTime($sleep_start_time);
+        $date2 = new DateTime($sleep_end_time);
+        $interval = date_diff($date, $date2);
+        $sleep_sum = $interval->format('%H:%I');
+
         $sound_sleep = $post['sound_sleep'];
         $nap = $post['nap'];
         $nap_start_time = $post['nap_start_time'];
         $nap_end_time = $post['nap_end_time'];
+
+        $date3 = new DateTime($nap_start_time);
+        $date4 = new DateTime($nap_end_time);
+        $interval2 = date_diff($date3, $date4);
+        $nap_sum = $interval2->format('%H:%I');
+
         $weather = $post['weather'];
         $event1 = $post['event1'];
         $event2 = $post['event2'];
@@ -76,6 +91,17 @@
             $ok_flag = false;
         }
 
+        if($sleep_start_time > $sleep_end_time) {
+            print "✓　恐れ⼊りますが、睡眠開始時間が睡眠終了時間より遅いです。<br>";
+            $ok_flag = false;
+        }
+
+        if($nap_start_time > $nap_end_time) {
+            print "✓　恐れ⼊りますが、昼寝開始時間が昼寝終了時間より遅いです。<br>";
+            $ok_flag = false;
+        }
+
+
         // SQLに登録    
         if($ok_flag == true) {
             // monitoringにその日初めての記入
@@ -85,16 +111,19 @@
             $dbh = new PDO($dsn, $user, $password);
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            $sql = 'INSERT INTO monitoring(user_id, entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)';
+            $sql = 'INSERT INTO monitoring(user_id, entries_date, weekday, sleep_start_time, sleep_end_time, sleep_sum, sound_sleep, nap, nap_start_time, nap_end_time, nap_sum, weather, event1, event2, event3, notice) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
             $stmt = $dbh -> prepare($sql);
             $data[] = 0;
             $data[] = $registration_date;
+            $data[] = $weekday;
             $data[] = $sleep_start_time;
             $data[] = $sleep_end_time;
+            $data[] = $sleep_sum;
             $data[] = $sound_sleep;
             $data[] = $nap;
             $data[] = $nap_start_time;
             $data[] = $nap_end_time;
+            $data[] = $nap_sum;
             $data[] = $weather;
             $data[] = $event1;
             $data[] = $event2;

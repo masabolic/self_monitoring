@@ -20,6 +20,10 @@
     $day = $_GET["date"];
     ?>
 
+    <button type="button" onclick="location.href='./selected_screen.php'">最初の画面へ</button>
+    <button type="button" onclick="history.back()">元に戻る</button>
+    <br><br>
+
     <table border="1">
         <!-- colorの青と黄のidを配列に入れる -->
         <?php
@@ -144,7 +148,7 @@
             $dbh = new PDO($dsn, $user, $password);
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            $sql = "SELECT id, entries_date, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, spirit_signal, event1, event2, event3, notice FROM monitoring  WHERE entries_date = ? AND 	is_deleted = ?";
+            $sql = "SELECT id, entries_date, weekday, sleep_start_time, sleep_end_time, sleep_sum, sound_sleep, nap, nap_start_time, nap_end_time, nap_sum, weather, spirit_signal, event1, event2, event3, notice FROM monitoring  WHERE entries_date = ? AND 	is_deleted = ?";
             $data = [];
             $data[] = $day;
             $data[] = 0;
@@ -166,11 +170,7 @@
 
             $rec = $stmt->fetch(PDO::FETCH_ASSOC);
             ?> <th> <?php print $day ?> </th>
-            <?php
-                $date = new DateTime($day);
-                $w = (int)$date->format('w');
-            ?>
-            <th> <?php print $week[$w] ?> </th>
+            <th> <?php print $week[$rec['weekday']] ?> </th>
             <!-- 睡眠開始時間の時間だけ -->
             <?php
                 $date = new DateTime($rec['sleep_start_time']);
@@ -181,9 +181,11 @@
             <?php
                 $date = new DateTime($rec['sleep_end_time']);
                 $sleep_end_time = $date->format('H:i');
+                $date6 = new DateTime($rec['sleep_sum']);
+                $sleep_sum = $date6->format('H:i');
             ?>
             <th> <?php print $sleep_end_time; ?> </th>
-            <th> </th>
+            <th> <?php print $sleep_sum; ?> </th>
             <th> <?php print $sound[$rec["sound_sleep"]]; ?> </th>
             <th> <?php print $sound_nap[$rec["nap"]]; ?> </th>
             <!-- 昼寝開始時間(0ばっかの時は記載しない) -->
@@ -204,8 +206,14 @@
                     $nap_start_time = $date->format('H:i');
             ?>
             <th> <?php print $nap_start_time; ?> </th>
-            <?php } ?> 
-            <th> </th>
+            <?php }
+                $date5 = new DateTime($rec['nap_sum']);
+                $nap_sum = $date5->format('H:i');
+                if($nap_sum == "00:00") { 
+                    ?> <th> </th> <?php
+                }else{ ?>
+                    <th><?php print $nap_sum; ?></th>
+                <?php } ?>
             <th> <?php print $weather_list[$rec["weather"]]; ?> </th>
             <?php
             // 青信号のIDをもとに２重ループする

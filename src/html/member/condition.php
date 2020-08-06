@@ -105,19 +105,25 @@
     <h5>
     行動指針
     <?php
-    if($spirit_signal == 0) {
-        print "青";
-    }elseif($spirit_signal == 1){
-        print "緑";
-    }elseif($spirit_signal == 2){
-        print "黄";
-    }elseif($spirit_signal == 3){
-        print "橙";
-    }elseif($spirit_signal == 4){
-        print "赤";
-    }elseif($spirit_signal == 5){
-        print "黒";
-    } 
+    $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+    $user2 = 'root';
+    $password2 = '';
+    $dbh2 = new PDO($dsn2, $user2, $password2);
+    $dbh2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $sql2 = "SELECT activity, do_not_need FROM activity WHERE color = ?";
+    $data2 = [];
+    $data2[] = $spirit_signal;
+    $stmt2 = $dbh2 -> prepare($sql2);
+    $stmt2 -> execute($data2);
+
+    $dbh2 = null;
+
+    $rec2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+
+    if($rec2["do_not_need"] == 0){
+        print $rec2["activity"];
+    }
     ?>
     </h5>
     <br>

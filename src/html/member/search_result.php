@@ -365,11 +365,13 @@
                                                 $sql .= " (condition_id=? AND condition_level<=? ) OR";
                                             }elseif($signal_up_down == 1) {
                                                 $sql .= " (condition_id=? AND condition_level>=? ) OR";
+                                            }else{
+                                                $sql .= " (condition_id=? AND condition_level=? ) OR";
                                             }
                                         }else{
                                         $sql .= " (condition_id=? AND condition_level=? ) OR";
-                                        $condition_flag = false;
                                         }
+                                    $condition_flag = false;
                                     }
                                 }
                             }

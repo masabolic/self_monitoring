@@ -21,26 +21,66 @@
         $post = sanitize($_POST);
     }
 
-    if(isset($post)) {
-        print $post['item'];
-        print "<br>";
-        print $post['short_name'];
-        print "<br>";
-        if($post['signal'] == 0){
-            print "青";
-        }elseif($post['signal'] == 1){
-            print "黄";
-        }elseif($post['signal'] == 2){
-            print "追加黄";
-        }elseif($post['signal'] == 3){
-            print "追加橙";
-        }else{
-            print "追加赤";
-        }
-        print "<br>";
-        print "を登録しました。";
-    }
 
+    if(isset($post)) {
+        $ok_flag = true;
+        if(!isset($post['signal'])) {
+            print "✓　恐れ⼊りますが、体調信号を選んで下さい。<br>";
+            $ok_flag = false;
+        }
+
+        if(mb_strlen($post['short_name'], 'UTF-8') > 5){
+            print "✓　恐れ⼊りますが、略称名は５文字以内でお願いします。<br>";
+            $ok_flag = false;
+        }
+
+        if(mb_strlen($post['item'], 'UTF-8') > 20){
+            print "✓　恐れ⼊りますが、項目名は20文字以内でお願いします。<br>";
+            $ok_flag = false;
+        }
+
+        if(empty($post['item'])){
+            print "✓　恐れ⼊りますが、項目名が空です。<br>";
+            $ok_flag = false;
+        }
+
+        if($ok_flag == true) {
+            print $post['item'];
+            print "<br>";
+            print $post['short_name'];
+            print "<br>";
+            if($post['signal'] == 0){
+                print "青";
+            }elseif($post['signal'] == 2){
+                print "黄";
+            }elseif($post['signal'] == 6){
+                print "追加黄";
+            }elseif($post['signal'] == 7){
+                print "追加橙";
+            }elseif($post['signal'] == 8){
+                print "追加赤";
+            }
+            print "<br>";
+            print "を登録しました。";
+
+            $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+            $user = 'root';
+            $password = '';
+            $dbh = new PDO($dsn, $user, $password);
+            $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            $sql = 'INSERT INTO physical_condition_items(item, short_name, color) VALUES(?,?,?)';
+            $stmt = $dbh -> prepare($sql);
+            $data = [];
+            $data[] = $post['item'];
+            $data[] = $post['short_name'];
+            $data[] = $post['signal'];
+
+            $stmt -> execute($data);
+        
+            $dbh = null;
+        }
+    }
     ?>
 
     <br>

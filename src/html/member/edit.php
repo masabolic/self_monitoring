@@ -380,6 +380,7 @@
         '5' => '晴れのち雨', '6' => '雨', '7' => '雨時々晴れ', '8' => '雨時々曇り', '9' => '雨のち晴れ', '10' => '雨のち曇り',
         '11' => '曇り', '12' => '曇り時々晴れ', '13' => '曇り時々雨', '14' => '曇りのち晴れ', '15' => '曇りのち雨',
     );
+    $signal_list = array('1' => '1', '2' => '2', '3' => '3', '4' => '4');
     ?>
 
     <!-- 青信号 -->
@@ -444,10 +445,9 @@
             <select name="<?= $rec['id']; ?>" id="<?= $rec['id']; ?>">
                 <option value="" <?php if(!isset($rec3['condition_level']) || is_null($rec3['condition_level'])){ ?> selected <?php } ?> >--選択して下さい--</option>
                 <option value="0" <?php if(isset($rec3['condition_level'])){ ?> selected <?php } ?>>0</option>
-                <option value="1" <?php if(isset($rec3['condition_level']) && $rec3['condition_level'] == 1){ ?> selected <?php } ?>>1</option>
-                <option value="2" <?php if(isset($rec3['condition_level']) && $rec3['condition_level'] == 2){ ?> selected <?php } ?>>2</option>
-                <option value="3" <?php if(isset($rec3['condition_level']) && $rec3['condition_level'] == 3){ ?> selected <?php } ?>>3</option>
-                <option value="4" <?php if(isset($rec3['condition_level']) && $rec3['condition_level'] == 4){ ?> selected <?php } ?>>4</option>
+                <?php foreach ($signal_list as $v => $value) : ?>
+                    <option value="<?= $v ?>" <?php if(isset($rec3['condition_level']) && $rec3['condition_level'] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
+                <?php endforeach ?>
                 <option value="5" <?php if(isset($rec3['condition_level']) && $rec3['condition_level'] == 5){ ?> selected <?php } ?>>-</option>
             </select>
             <br>
@@ -523,10 +523,9 @@
             <select name="<?= $rec['id']; ?>" id="<?= $rec['id']; ?>">
                 <option value="" <?php if(!isset($rec4['condition_level']) || is_null($rec4['condition_level'])){ ?> selected <?php } ?> >--選択して下さい--</option>
                 <option value="0" <?php if(isset($rec4['condition_level'])){ ?> selected <?php } ?>>0</option>
-                <option value="1" <?php if(isset($rec4['condition_level']) && $rec4['condition_level'] == 1){ ?> selected <?php } ?>>1</option>
-                <option value="2" <?php if(isset($rec4['condition_level']) && $rec4['condition_level'] == 2){ ?> selected <?php } ?>>2</option>
-                <option value="3" <?php if(isset($rec4['condition_level']) && $rec4['condition_level'] == 3){ ?> selected <?php } ?>>3</option>
-                <option value="4" <?php if(isset($rec4['condition_level']) && $rec4['condition_level'] == 4){ ?> selected <?php } ?>>4</option>
+                <?php foreach ($signal_list as $v => $value) : ?>
+                        <option value="<?= $v ?>" <?php if(isset($rec4['condition_level']) && $rec4['condition_level'] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
+                <?php endforeach ?>
             </select>
             <br>
             <br>

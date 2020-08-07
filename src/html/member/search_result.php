@@ -36,25 +36,84 @@
     <button type="button" onclick="location.href='./selected_screen.php'">最初の画面に戻る</button>
     <br><br>
 
+    <!-- 次に引き継ぐ処理 -->
+    <input type="hidden" name="weekday" value="<?= $post['weekday'] ?>">
+    <input type="hidden" name="start_day" value="<?= $post['start_day'] ?>">
+    <input type="hidden" name="end_day" value="<?= $post['end_day'] ?>">
+    <input type="hidden" name="start_to_sleep" value="<?= $post['start_to_sleep'] ?>">
+    <input type="hidden" name="end_to_sleep" value="<?= $post['end_to_sleep'] ?>">
+    <input type="hidden" name="sleep_total" value="<?= $post['sleep_total'] ?>">
+    <input type="hidden" name="sleep_up_down" value="<?= $post['sleep_up_down'] ?>">
+    <input type="hidden" name="sound_sleep" value="<?= $post['sound_sleep'] ?>">
+    <input type="hidden" name="nap_total" value="<?= $post['nap_total'] ?>">
+    <input type="hidden" name="nap_up_down" value="<?= $post['nap_up_down'] ?>">
+    <input type="hidden" name="blue_signal" value="<?= $post['blue_signal'] ?>">
+    <input type="hidden" name="yellow_signal" value="<?= $post['yellow_signal'] ?>">
+    <input type="hidden" name="yellow_up_down" value="<?= $post['yellow_up_down'] ?>">
+    <input type="hidden" name="condition" value="<?= $post['condition'] ?>">
+    <input type="hidden" name="condition_up_down" value="<?= $post['condition_up_down'] ?>">
+    <input type="hidden" name="weather" value="<?= $post['weather'] ?>">
+    <input type="hidden" name="event" value="<?= $post['event'] ?>">
+
+    <!-- 青信号 -->
+    <?php
+        $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+        $user3 = 'root';
+        $password3 = '';
+        $dbh3 = new PDO($dsn3, $user3, $password3);
+        $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+        $sql3 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE color = ? OR color = ?';
+        $stmt3 = $dbh3 -> prepare($sql3);
+        $data3 = [];
+        $data3[] = 0;
+        $data3[] = 2;
+        $stmt3 -> execute($data3);
+
+        $dbh3 = null;
+
+        
+        while(true) {
+            $rec3 = $stmt3->fetch(PDO::FETCH_ASSOC);
+            if($rec3==false){
+                break;
+            }
+            if($rec3['display_unnecessary'] == 1){
+                continue;
+            }
+            $item_id = 'signal' . $rec3['id'];
+            ?>
+            <input type="hidden" name="<?= $rec3['id']; ?>" value="<?= $post[$rec3['id']]; ?>">
+            <input type="hidden" name="<?= $item_id; ?>" id="<?= $post[$item_id]; ?>">
+            <?php if($rec3['color'] == 2) {
+                $up_down = 'up_down' . $rec3['id']; ?>
+            <input type="hidden" name="<?= $up_down; ?>" value="<?= $post[$up_down]; ?>">
+            <?php } ?>
+        <?php } ?>
+
+
+
+
         <div class="row">
             <div class="col-2">件数</div>
             <div class="col-2">
-                <input type="radio" name="count" id="one_week" value="0" checked="checked">
-                <label for="one_week">10件</label>
+                <input type="radio" name="count" id="all" value="0" checked="checked">
+                <label for="all">全部</label>
             </div>
             <div class="col-2">
-                <input type="radio" name="count" id="one_month" value="1">
-                <label for="one_month">50件</label>
+                <input type="radio" name="count" id="fifty" value="1">
+                <label for="fifty">50件</label>
             </div>
             <div class="col-2">
-                <input type="radio" name="count" id="one_month" value="2">
-                <label for="one_month">全部</label>
+                <input type="radio" name="count" id="ten" value="2">
+                <label for="ten">10件</label>
             </div>
         </div>
         <div class="row">
             <div class="col-2"><label for="abbreviation">略称</label></div>
             <div class="col-2">
-                <input type="checkbox" name="abbreviation" id="abbreviation" value="0">
+                <input type="checkbox" name="abbreviation" id="abbreviation" value="1" <?php if($abbreviation == 1) { ?> checked="checked" <?php } ?> >
                 <label for="abbreviation">する</label>
             </div>
             <div class="col-2"></div>
@@ -130,9 +189,12 @@
                 $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-                $sql = 'SELECT item, short_name, display_unnecessary, color FROM physical_condition_items WHERE 1';
+                $sql = 'SELECT item, short_name, display_unnecessary, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
                 $stmt = $dbh -> prepare($sql);
-                $stmt -> execute();
+                $data = [];
+                $data[] = 0;
+                $data[] = 0;
+                $stmt -> execute($data);
 
                 $dbh = null;
 
@@ -141,17 +203,11 @@
                     if($rec==false){
                         break;
                     }
-                    if($rec['display_unnecessary'] == 1){
-                        continue;
-                    }
-
-                    if($rec['color'] == 0){
-                        if($abbreviation == 0) {
-                            ?> <th> <?php print $rec['item'] ?> </th>
-                        <?php }else{ 
-                            ?> <th> <?php print $rec['short_name'] ?> </th>
-                        <?php }
-                    }
+                    if($abbreviation == 0) {
+                        ?> <th> <?php print $rec['item'] ?> </th>
+                    <?php }else{ 
+                        ?> <th> <?php print $rec['short_name'] ?> </th>
+                    <?php }
                 }
 
                 // 黄信号の項目をthに書き出す
@@ -222,7 +278,7 @@
                 $weather = $post['weather'];
                 $event = $post['event'];
                 $signal_flag = false;
-                
+
                 //　検索をする
                 $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                 $user = 'root';
@@ -232,11 +288,7 @@
 
                 $sql = "";
                 $sql .= "SELECT entries_date, weekday, sleep_start_time, sleep_end_time, sleep_sum, sound_sleep, nap, nap_start_time, nap_end_time, nap_sum, spirit_signal, weather, event1, event2, event3, notice ";
-                // if(!empty($blue_signal)){
-                    $sql .= ", M.id, condition_id, condition_level FROM monitoring M JOIN condition_levels C ON M.id = C.monitoring_id";
-                // }else{
-                //     $sql .= ", id FROM monitoring "; 
-                // }
+                $sql .= ", M.id, condition_id, condition_level FROM monitoring M JOIN condition_levels C ON M.id = C.monitoring_id";
                 $sql .= " WHERE is_deleted = ? ";
                 if(is_numeric($weekday)) {
                     $sql .= "AND weekday = ? ";
@@ -400,7 +452,13 @@
                 if(!empty($event)) {
                     $sql .= "AND ( event1 LIKE ? OR event2 LIKE ? OR event3 LIKE ? ) ";
                 }
+
                 $sql .= " ORDER BY entries_date DESC";
+                if($count == 2) {
+                    $sql .= " LIMIT 10";
+                }elseif($count == 1) {
+                    $sql .= " LIMIT 50";
+                }
 
                 $data = [];
                 $data[] = 0;
@@ -516,7 +574,6 @@
                     $data[] = '%'.$event.'%';
                 }
 
-                var_dump($sql);
                 $stmt = $dbh -> prepare($sql);
                 $stmt -> execute($data);
 

@@ -51,6 +51,8 @@
         $event3 = $post['event3'];
         $notice = $post['notice'];
         $spirit_signal_yellow = 0;
+        $spirit_signal_red = 0;
+        $spirit_signal_black = 0;
 
         $ok_flag = true;
 
@@ -153,6 +155,44 @@
                 $rec6 = $stmt6->fetch(PDO::FETCH_ASSOC);
                 $monitoring_id = $rec6['id'];
 
+                //一週間前の日付を取得
+                $date = new DateTime($registration_date, new \DateTimeZone('Asia/Tokyo'));
+                $date -> sub(new DateInterval("P1W"));
+                $before_week = $date -> format("Y-m-d");
+
+                //一週間分の体調信号を取得し、橙以上の体調を判定
+                $dsn9 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                $user9 = 'root';
+                $password9 = '';
+                $dbh9 = new PDO($dsn9, $user9, $password9);
+                $dbh9->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+                $sql9 = "SELECT spirit_signal FROM monitoring WHERE entries_date >= ? AND entries_date <= ? AND is_deleted = ?";
+                $data9 = [];
+                $data9[] = $before_week
+                $data9[] = $registration_date;
+                $data9[] = 0;
+                $stmt9 = $dbh9 -> prepare($sql9);
+                $stmt9 -> execute($data9);
+
+                $dbh9 = null;
+                while(true) {
+                    $rec9 = $stmt9->fetch(PDO::FETCH_ASSOC);
+                    if($rec9==false){
+                        break;
+                    }
+                    if($rec9['spirit_signal'] >= 4) {
+                        $spirit_signal_black++;
+                    }
+                    if($rec9['spirit_signal'] >= 3) {
+                        $spirit_signal_red += 2;
+                    }
+                    if($rec9['spirit_signal'] >= 2) {
+                        $spirit_signal_red++;
+                    }
+
+                }
+
                 // 必要不要と色をループを回して取り出す。
                 $dsn5 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                 $user5 = 'root';
@@ -180,6 +220,17 @@
                         $sql7 = 'UPDATE monitoring SET spirit_signal=? WHERE id = ?';
                         $stmt7 = $dbh7 -> prepare($sql7);
                         $data7 = [];
+
+
+                        // ここから！！
+
+
+
+
+
+
+
+
                         if($spirit_signal_yellow == 0) {
                             $data7[] = 0;
                             $spirit_signal = 0;
@@ -249,7 +300,7 @@
     <br><br>
 
     <input type="date" name="registration_date" value="<?= date('Y-m-d') ?>">
-    <input type="button" value="前日">
+    <input type="button" value="変更">
 
     <!-- 睡眠記入欄 -->
     <h2>睡眠</h2>
@@ -399,7 +450,8 @@
             <br>
             <?php } 
         } ?>
-        <br><br>
+        <input type="button" value="一括(-)">
+        <br><br><br><br>
 
         <h2>黄信号</h2>
         <br>

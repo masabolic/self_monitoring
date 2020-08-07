@@ -124,9 +124,11 @@
         $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-        $sql3 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
+        $sql3 = 'SELECT id, item, display_unnecessary FROM physical_condition_items WHERE color = ?';
         $stmt3 = $dbh3 -> prepare($sql3);
-        $stmt3 -> execute();
+        $data3 = [];
+        $data3[] = 0;
+        $stmt3 -> execute($data3);
 
         $dbh3 = null;
 
@@ -140,7 +142,6 @@
                 continue;
             }
 
-            if($rec3['color'] == 0){
                 $item_id = 'signal' . $rec3['id'];
                 ?>
                 <h5>
@@ -157,8 +158,7 @@
                 </h5>
             <br>
             <br>
-            <?php } 
-        } ?>
+        <?php } ?>
         <br><br>
 
 

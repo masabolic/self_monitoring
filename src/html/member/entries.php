@@ -51,6 +51,7 @@
         $event3 = $post['event3'];
         $notice = $post['notice'];
         $spirit_signal_yellow = 0;
+        $spirit_signal_orenge = 0;
         $spirit_signal_red = 0;
         $spirit_signal_black = 0;
 
@@ -169,7 +170,7 @@
     
                 $sql9 = "SELECT spirit_signal FROM monitoring WHERE entries_date >= ? AND entries_date <= ? AND is_deleted = ?";
                 $data9 = [];
-                $data9[] = $before_week
+                $data9[] = $before_week;
                 $data9[] = $registration_date;
                 $data9[] = 0;
                 $stmt9 = $dbh9 -> prepare($sql9);
@@ -185,10 +186,10 @@
                         $spirit_signal_black++;
                     }
                     if($rec9['spirit_signal'] >= 3) {
-                        $spirit_signal_red += 2;
+                        $spirit_signal_red++;
                     }
                     if($rec9['spirit_signal'] >= 2) {
-                        $spirit_signal_red++;
+                        $spirit_signal_orenge++;
                     }
 
                 }
@@ -221,16 +222,6 @@
                         $stmt7 = $dbh7 -> prepare($sql7);
                         $data7 = [];
 
-
-                        // ここから！！
-
-
-
-
-
-
-
-
                         if($spirit_signal_yellow == 0) {
                             $data7[] = 0;
                             $spirit_signal = 0;
@@ -238,8 +229,19 @@
                             $data7[] = 1;
                             $spirit_signal = 1;
                         }else{
-                            $data7[] = 2;
-                            $spirit_signal = 2;
+                            if($spirit_signal_black >= 4) {
+                                $data7[] = 5;
+                                $spirit_signal = 5;
+                            }elseif($spirit_signal_red >= 3 || $spirit_signal_orenge >= 5){
+                                $data7[] = 4;
+                                $spirit_signal = 4;
+                            }elseif($spirit_signal_orenge >= 3){
+                                $data7[] = 3;
+                                $spirit_signal = 3      ;
+                            }else{
+                                $data7[] = 2;
+                                $spirit_signal = 2;
+                            }
                         }
                         $data7[] = $monitoring_id;
 
@@ -305,7 +307,11 @@
     <!-- 睡眠記入欄 -->
     <h2>睡眠</h2>
     <?php
-    $date = new DateTime('now', new \DateTimeZone('Asia/Tokyo'));
+    // if($_POST){
+    //     $date = new DateTime($_POST["registration_date"], new \DateTimeZone('Asia/Tokyo'));
+    // }else{
+        $date = new DateTime('now', new \DateTimeZone('Asia/Tokyo'));
+    // }   
     $daytime = $date -> format("Y-m-d");
     $sleep_start =  $daytime . "T00:00";
     $sleep_end = $daytime . "T08:00";

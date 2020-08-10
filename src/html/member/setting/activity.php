@@ -49,7 +49,7 @@
 
             $rec2 = $stmt2->fetch(PDO::FETCH_ASSOC);
 
-            // 同じcolorのidが無かったら、新規でデータベースに書き込む。
+            // 同じcolorのidがあれば、既存に変わりデータベースに書き込む。
             if(!empty($rec2['id']) && is_numeric($rec2['id'])) {
                 $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                 $user = 'root';
@@ -68,24 +68,26 @@
         
                 $dbh = null;
 
-            // 同じcolorのidがあれば、既存に変わりデータベースに書き込む。
+            // 同じcolorのidが無かったら、新規でデータベースに書き込む。
             } else {
-                $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user3 = 'root';
-                $password3 = '';
-                $dbh3 = new PDO($dsn3, $user3, $password3);
-                $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                if(!empty($act[$i])){
+                    $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                    $user3 = 'root';
+                    $password3 = '';
+                    $dbh3 = new PDO($dsn3, $user3, $password3);
+                    $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-                $sql3 = 'INSERT INTO activity(activity, color, do_not_need) VALUES(?,?,?)';
-                $stmt3 = $dbh3 -> prepare($sql3);
-                $data3 = [];
-                $data3[] = $act[$i];
-                $data3[] = $i;
-                $data3[] = $not_activity;
+                    $sql3 = 'INSERT INTO activity(activity, color, do_not_need) VALUES(?,?,?)';
+                    $stmt3 = $dbh3 -> prepare($sql3);
+                    $data3 = [];
+                    $data3[] = $act[$i];
+                    $data3[] = $i;
+                    $data3[] = $not_activity;
 
-                $stmt3 -> execute($data3);
+                    $stmt3 -> execute($data3);
 
-                $dbh3 = null;
+                    $dbh3 = null;
+                }
             }
         }
     }

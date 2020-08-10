@@ -98,15 +98,15 @@
         <div class="row">
             <div class="col-2">件数</div>
             <div class="col-2">
-                <input type="radio" name="count" id="all" value="0" checked="checked">
+            <input type="radio" name="count" id="all" value="0" <?php if($count == 0) { ?> checked="checked" <?php } ?> >
                 <label for="all">全部</label>
             </div>
             <div class="col-2">
-                <input type="radio" name="count" id="fifty" value="1">
+                <input type="radio" name="count" id="fifty" value="1" <?php if($count == 1) { ?> checked="checked" <?php } ?> >
                 <label for="fifty">50件</label>
             </div>
             <div class="col-2">
-                <input type="radio" name="count" id="ten" value="2">
+                <input type="radio" name="count" id="ten" value="2" <?php if($count == 2) { ?> checked="checked" <?php } ?> >
                 <label for="ten">10件</label>
             </div>
         </div>
@@ -251,13 +251,6 @@
         </tr>
         <tr>
         <?php
-            if(!empty($_POST)){
-                require_once('../common.php');
-                $post = sanitize($_POST);
-            }
-
-            $count = 0;
-            $abbreviation = 0;
 
             if(isset($post)) {
                 $weekday = $post['weekday'];
@@ -453,7 +446,7 @@
                     $sql .= "AND ( event1 LIKE ? OR event2 LIKE ? OR event3 LIKE ? ) ";
                 }
 
-                $sql .= " ORDER BY entries_date DESC";
+                $sql .= " ORDER BY entries_date DESC ";
                 if($count == 2) {
                     $sql .= " LIMIT 10";
                 }elseif($count == 1) {

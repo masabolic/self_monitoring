@@ -237,7 +237,7 @@
                                 $spirit_signal = 4;
                             }elseif($spirit_signal_orenge >= 3){
                                 $data7[] = 3;
-                                $spirit_signal = 3      ;
+                                $spirit_signal = 3;
                             }else{
                                 $data7[] = 2;
                                 $spirit_signal = 2;

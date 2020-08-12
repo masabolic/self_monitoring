@@ -447,11 +447,6 @@
                 }
 
                 $sql .= " ORDER BY entries_date DESC ";
-                if($count == 2) {
-                    $sql .= " LIMIT 10";
-                }elseif($count == 1) {
-                    $sql .= " LIMIT 50";
-                }
 
                 $data = [];
                 $data[] = 0;
@@ -583,15 +578,29 @@
                 );
                 $condition_list = array("青", "緑", "黄", "橙", "赤", "黒");
                 $same_id = 0;
+                $limit = 0;
                 while(true) {
                     $rec = $stmt->fetch(PDO::FETCH_ASSOC);
                     if($rec==false){
                         break;
                     }
+                    // condition_levelsとmonitoringのデータベースを結合した時にmonitoringのidのレコードが複数できるため、一つにする。
                     if($same_id == $rec['id']){
                         continue;
                     }
                     $same_id = $rec['id'];
+                    $limit++;
+
+                    // 検索結果に制限をかける。
+                    if($count == 2) {
+                        if(limit > 10) {
+                            break;
+                        }
+                    }elseif($count == 1) {
+                        if(limit > 50) {
+                            break;
+                        }
+                    }
                     ?> <th> <?php print $rec['entries_date'] ?> </th>
                     <th> <?php print $week[$rec['weekday']] ?> </th>
                     <!-- 睡眠開始時間の時間だけ -->

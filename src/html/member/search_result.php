@@ -149,13 +149,17 @@
                 if($rec==false){
                     break;
                 }
+
+                // 削除したものは除く
                 if($rec['display_unnecessary'] == 1){
                     continue;
                 }
                 
+                // 青を判定するidを全て入れる。
                 if($rec['color'] == 0){
                     $blue_roop[] = $rec['id'];
-                    
+                
+                // 黄を判定するidを全ていれる。
                 }elseif($rec['color'] == 2){
                     $yellow_roop[] = $rec['id'];
                 }
@@ -378,28 +382,34 @@
                 while(true) {
                     $rec6 = $stmt6->fetch(PDO::FETCH_ASSOC);
                     if($rec6==false){
+                        // $condition_flagは検索にはかけたけど、引っかからない時につかう。
                         if($condition_flag == true){
                             $sql .= " (condition_id=? OR condition_level=?)";
                         }
                         break;
                     }
                     $physical_id = '';
+                    // 青と黄の時に通る
                     if($rec6['color'] == 0 || $rec6['color'] == 2) {
+                        // physical_condition_itemsのidが飛ばされていたら、通る
                         if(is_numeric($post[$rec6['id']])) {
                             $physical_id = $post[$rec6['id']];
                             $item_id = 'signal' . $physical_id;
                             $signal_name = $post[$item_id];
+                            // 以下か以上を送ってきてるか確認
                             $up_down = 'up_down' . $physical_id;
                             $signal_up_down = '';
                             if($rec6['color'] == 2) {
                                 $signal_up_down = $post[$up_down];
                             }
                             if(is_numeric($signal_name)){
+                                // ここまでで信号の検索がとばされてなかったら、入れる。
                                 if($signal_flag == false) {
                                     $sql .= "AND (";
                                     $signal_flag = true;
                                     $condition_flag = true;
                                 }
+                                // 削除されているか確認
                                 if($rec6['display_unnecessary'] == 1){
                                     continue;
                                 }
@@ -424,12 +434,13 @@
                     }
                 }
 
-
+                // 信号の検索がかかっていたら、最後のORを消して、カッコで閉じる。
                 if($signal_flag == true) {
                     $sql = rtrim($sql, "OR");
                     $sql .= ")";
                 }
 
+                // 体調信号の検索。以上以下もできる。
                 if(!empty($condition)) {
                     if(is_numeric($condition_up_down) && $condition_up_down == 0) {
                         $sql .= "AND spirit_signal <= ? ";
@@ -439,15 +450,21 @@
                         $sql .= "AND spirit_signal = ? ";
                     }   
                 }
+
+                // 天気の検索
                 if(!empty($weather)) {
                     $sql .= "AND weather = ? ";
                 }
+
+                // 出来事全部の一括検索
                 if(!empty($event)) {
                     $sql .= "AND ( event1 LIKE ? OR event2 LIKE ? OR event3 LIKE ? ) ";
                 }
 
+                // 日付は最新のものから
                 $sql .= " ORDER BY entries_date DESC ";
 
+                // 検索が入ったものをif文で確認して、dataに代入する。
                 $data = [];
                 $data[] = 0;
                 if(is_numeric($weekday)) {
@@ -459,6 +476,8 @@
                 if(!empty($end_day)) {
                     $data[] = $end_day;
                 }
+
+                // データベースには秒も入っているからここでは00を入れている。
                 if(!empty($start_to_sleep)) {
                     $data[] = '%'.$start_to_sleep.':00';
                 }
@@ -495,12 +514,16 @@
                         if($rec5['display_unnecessary'] == 1){
                             continue;
                         }
+                        // 青に検索かけているか確認する。rec5の青の登録だけ通す
                         if($rec5['color'] == 0 && is_numeric($blue_signal)) {
+                            // 検索をかけた数値と登録されている数値が一致するかを確認する
                             if($blue_signal == $rec5['condition_level']) {
                                 $data[] = $rec5['id'];
                                 $data[] = $blue_signal;
                             }
+                        // 黄に検索かけているか確認する。rec5の黄の登録だけ通す
                         }elseif($rec5['color'] == 2 && is_numeric($yellow_signal)) {
+                            // 検索をかけた数値と登録されている数値が一致するかを確認する
                             if($yellow_signal == $rec5['condition_level']){
                                 $data[] = $rec5['id'];
                                 $data[] = $yellow_signal;
@@ -524,6 +547,7 @@
                 while(true) {
                     $rec7 = $stmt7->fetch(PDO::FETCH_ASSOC);
                     if($rec7==false){
+                        // $condition_flagは検索にはかけたけど、引っかからない時につかう。
                         if($condition_flag == true){
                             $data[] = $rec7['id'];
                             $data[] = $signal_name;
@@ -533,7 +557,9 @@
                     $physical_id = '';
                     if($rec7['color'] == 0 || $rec7['color'] == 2) {
                         if(is_numeric($post[$rec7['id']])) {
+                            // physical_condition_itemsのidを元にしてpostで送ってきたidを受け取ってる。
                             $physical_id = $post[$rec7['id']];
+                            // signalをつけて、condition_levelsの体調レベルを送っている。
                             $item_id = 'signal' . $physical_id;
                             $signal_name = $post[$item_id];
                             if(is_numeric($signal_name)){
@@ -550,12 +576,15 @@
                         }
                     }
                 }
+                // 体調信号
                 if(!empty($condition)) {
                         $data[] = $condition;
                 }
+                // 天気
                 if(!empty($weather)) {
                     $data[] = $weather;
                 }
+                // 出来事
                 if(!empty($event)){
                     $data[] = '%'.$event.'%';
                     $data[] = '%'.$event.'%';

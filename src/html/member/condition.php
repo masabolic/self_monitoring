@@ -20,6 +20,7 @@
 
     session_start();
     session_regenerate_id(true);
+    // この前の画面（記入画面か編集画面）より送られてくる。
     $monitoring_id = $_SESSION['monitoring_id'];
 
     if(isset($post)) {
@@ -53,8 +54,10 @@
             $condition_id = $rec3['id'];
             $condition_level = $post[$condition_id];
 
+            // この画面内（ソースでは下記記載）から送られてくるpostがあれば、体長レベルを記録する為に通す
             if(is_numeric($condition_level)) {
 
+                // 追加する信号に元々記載がないか確認するためにidをとる。
                 $dsn5 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                 $user5 = 'root';
                 $password5 = '';
@@ -116,6 +119,7 @@
     $spirit_signal = $_SESSION['spirit_signal'];
 
     ?>
+    <!-- 体調信号を６色で表す -->
     <br>
     <div class="row">
         <div class="col-2">
@@ -130,6 +134,7 @@
     </div>
     <br>
 
+    <!-- 体調信号に合わせた行動指針を呼び出して、表示 -->
     <?php
     $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
     $user2 = 'root';
@@ -159,8 +164,10 @@
         </div>
     <?php } ?>
     <br>
+    <!-- 体調信号が黄以下の場合 -->
     <?php if($spirit_signal < 2) { ?>
         <button onclick="location.href='./selected_screen.php'">最初の画面へ</button>
+    <!-- 体調信号が黄以上の場合 -->
     <?php } elseif($spirit_signal >= 2) { ?>
         <h5>
         追加項目
@@ -186,11 +193,12 @@
         <br>
 
         <?php
-        // 信号リスト
+        // 体調レベルリスト
         $signal_list = array(
             '1' => '1', '2' => '2', '3' => '3', '4' => '4'
         );
 
+        // 追加黄項目だけを取り出す
         $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
         $user = 'root';
         $password = '';
@@ -211,10 +219,12 @@
             if($rec==false){
                 break;
             }
+            // 不必要となったら、記録しない
             if($rec['display_unnecessary'] == 1){
                 continue;
             }
             
+            // 追加黄項目の２つのidを入れて、元々入ってた場合の初期値を呼び出す。
             $dsn7 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
             $user7 = 'root';
             $password7 = '';
@@ -236,7 +246,6 @@
                 <label for="<?= $rec['id']; ?>"><?php print $rec['item']; ?></label>
             </h5>
             <select name="<?= $rec['id']; ?>" id="<?= $rec['id']; ?>">
-                <option value="" selected>--選択して下さい--</option>
                 <option value="" <?php if(!isset($rec7['condition_level']) || is_null($rec7['condition_level'])){ ?> selected <?php } ?> >--選択して下さい--</option>
                 <option value="0" <?php if(isset($rec7['condition_level'])){ ?> selected <?php } ?>>0</option>
                 <?php foreach ($signal_list as $v => $value) : ?>
@@ -253,13 +262,15 @@
 
     <?php }
 
-    if($spirit_signal == 4) {
+    //　体調信号が赤以上の場合
+    if($spirit_signal >= 4) {
     ?>
         
         <h3>
         追加赤
         </h3>
         <br>
+        <!-- 追加赤だけを呼び出す -->
         <?php
         $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
         $user = 'root';
@@ -281,10 +292,12 @@
             if($rec2==false){
                 break;
             }
+            // 不必要となったら、記録しない
             if($rec2['display_unnecessary'] == 1){
                 continue;
             }
 
+            // 追加赤の初期値がある場合に備えて、呼び出す。
             $dsn8 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
             $user8 = 'root';
             $password8 = '';
@@ -307,7 +320,6 @@
             <label for="<?= $rec2['id']; ?>"><?php print $rec2['item']; ?></label>
             </h5>
             <select name="<?= $rec2['id']; ?>" id="<?= $rec2['id']; ?>">
-                <option value="" selected>--選択して下さい--</option>
                 <option value="" <?php if(!isset($rec8['condition_level']) || is_null($rec8['condition_level'])){ ?> selected <?php } ?> >--選択して下さい--</option>
                 <option value="0" <?php if(isset($rec8['condition_level'])){ ?> selected <?php } ?>>0</option>
                 <?php foreach ($signal_list as $v => $value) : ?>
@@ -324,6 +336,7 @@
         <br><br><br><br>
     <?php }
 
+    // 体調信号が黄以上の場合
     if($spirit_signal >= 2) { 
     ?>
 

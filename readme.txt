@@ -20,3 +20,6 @@
 ☆検索も
 
 ⭐︎記入の睡眠時間の初期値がエラー後も出るか？？
+
+⭐︎calenderのmonitor.cssいる？？
+⭐︎p105edit_calendar $special_roop++ いる？？

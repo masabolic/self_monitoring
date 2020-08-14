@@ -348,19 +348,24 @@
     $rec2 = $stmt2->fetch(PDO::FETCH_ASSOC);
     $monitoring_id = $rec2['id'];
 
+    // 記入蘭に初期値を入れる。
     $sleep_start =  $rec2["sleep_start_time"];
     $date_start = new DateTime($sleep_start);
+    // 日付と時間の間にTを入れないと初期値に反映されないので、入れている。
     $sleep_start_time_default = $date_start->format('Y-m-d') . 'T' . $date_start->format('H:i');
     $sleep_end = $rec2["sleep_end_time"];
     $date_end = new DateTime($sleep_end);
+    // 日付と時間の間にTを入れないと初期値に反映されないので、入れている。
     $sleep_end_time_default = $date_end->format('Y-m-d') . 'T' . $date_end->format('H:i');
     $sound_sleep_default = $rec2["sound_sleep"];
     $nap_default = $rec2["nap"];
     $nap_start = $rec2["nap_start_time"];
     $date_nap_start = new DateTime($nap_start);
+    // 日付と時間の間にTを入れないと初期値に反映されないので、入れている。
     $nap_start_time_default = $date_nap_start->format('Y-m-d') . 'T' . $date_nap_start->format('H:i');
     $nap_end = $rec2["nap_end_time"];
     $date_nap_end = new DateTime($nap_end);
+    // 日付と時間の間にTを入れないと初期値に反映されないので、入れている。
     $nap_end_time_default = $date_nap_end->format('Y-m-d') . 'T' . $date_nap_end->format('H:i');
     $weather_default = $rec2["weather"];
     $event1_default = $rec2["event1"];
@@ -472,9 +477,11 @@
         $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-        $sql = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
+        $sql = 'SELECT id, item, display_unnecessary FROM physical_condition_items WHERE color = ?';
         $stmt = $dbh -> prepare($sql);
-        $stmt -> execute();
+        $data = [];
+        $data[] = 0;
+        $stmt -> execute($data);
 
         $dbh = null;
 
@@ -487,28 +494,29 @@
                 continue;
             }
 
-            if($rec['color'] == 0){
-                $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user3 = 'root';
-                $password3 = '';
-                $dbh3 = new PDO($dsn3, $user3, $password3);
-                $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            // condition_levelsにすでに記載してある体調レベルを呼び出す。初期値に使う。
+            $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+            $user3 = 'root';
+            $password3 = '';
+            $dbh3 = new PDO($dsn3, $user3, $password3);
+            $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-                $sql3 = 'SELECT id, condition_level FROM condition_levels WHERE monitoring_id = ? AND condition_id = ?';
-                $data3 = [];
-                $data3[] = $monitoring_id;
-                $data3[] = $rec['id'];
-                $stmt3 = $dbh3 -> prepare($sql3);
-                $stmt3 -> execute($data3);
+            $sql3 = 'SELECT id, condition_level FROM condition_levels WHERE monitoring_id = ? AND condition_id = ?';
+            $data3 = [];
+            $data3[] = $monitoring_id;
+            $data3[] = $rec['id'];
+            $stmt3 = $dbh3 -> prepare($sql3);
+            $stmt3 -> execute($data3);
 
-                $dbh3 = null;
-                $rec3 = $stmt3->fetch(PDO::FETCH_ASSOC);
+            $dbh3 = null;
+            $rec3 = $stmt3->fetch(PDO::FETCH_ASSOC);
 
-                $blue_id = "";
-                if(isset($rec3['id'])) {
-                    $blue_id = "id" . $rec3['id'];
-                }
+            $blue_id = "";
+            // idをつけて、postで送る。condition_levelsに存在しているかを後で確認するため。
+            if(isset($rec3['id'])) {
+                $blue_id = "id" . $rec3['id'];
+            }
             ?>
             <h5>
             <input type="hidden" name="monitoring_id" value="<?= $monitoring_id; ?>">
@@ -525,8 +533,7 @@
             </select>
             <br>
             <br>
-            <?php } 
-        } ?>
+        <?php } ?>
         <br><br>
 
     <input type="button" value="一括(-)">
@@ -543,7 +550,8 @@
     <br>
     <br>
 
-    <?php 
+    <?php
+        // condition_levelsにすでに記載してある体調レベルを呼び出す。初期値に使う。
         $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
         $user = 'root';
         $password = '';
@@ -551,9 +559,11 @@
         $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-        $sql = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
+        $sql = 'SELECT id, item, display_unnecessary FROM physical_condition_items WHERE color = ?';
         $stmt = $dbh -> prepare($sql);
-        $stmt -> execute();
+        $data = [];
+        $data[] = 2; 
+        $stmt -> execute($data);
 
         $dbh = null;
         
@@ -566,29 +576,29 @@
                 continue;
             }
 
-            if($rec['color'] == 2) {
-                $dsn4 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user4 = 'root';
-                $password4 = '';
-                $dbh4 = new PDO($dsn4, $user4, $password4);
-                $dbh4->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $dsn4 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+            $user4 = 'root';
+            $password4 = '';
+            $dbh4 = new PDO($dsn4, $user4, $password4);
+            $dbh4->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-                $sql4 = 'SELECT id, condition_level FROM condition_levels WHERE monitoring_id = ? AND condition_id = ?';
-                $data4 = [];
-                $data4[] = $monitoring_id;
-                $data4[] = $rec['id'];
-                $stmt4 = $dbh4 -> prepare($sql4);
-                $stmt4 -> execute($data4);
+            $sql4 = 'SELECT id, condition_level FROM condition_levels WHERE monitoring_id = ? AND condition_id = ?';
+            $data4 = [];
+            $data4[] = $monitoring_id;
+            $data4[] = $rec['id'];
+            $stmt4 = $dbh4 -> prepare($sql4);
+            $stmt4 -> execute($data4);
 
-                $dbh4 = null;
-                $rec4 = $stmt4->fetch(PDO::FETCH_ASSOC);
-            
-                $yellow_id = "";
-                if(isset($rec4['id'])) {
-                    $yellow_id = "id" . $rec4['id'];
-                }
-                ?>
+            $dbh4 = null;
+            $rec4 = $stmt4->fetch(PDO::FETCH_ASSOC);
+        
+            // idをつけて、postで送る。condition_levelsに存在しているかを後で確認するため。
+            $yellow_id = "";
+            if(isset($rec4['id'])) {
+                $yellow_id = "id" . $rec4['id'];
+            }
+            ?>
             <input type="hidden" name="<?= $yellow_id; ?>" value="<?= $rec4['id']; ?>">
             <h5>
             <label for="<?= $rec['id']; ?>"><?php print $rec['item']; ?></label>

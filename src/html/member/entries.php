@@ -17,19 +17,23 @@
     <br><br>
 
     <?php
+    // サニタイジング
     if(!empty($_POST)){
     require_once('../common.php');
     $post = sanitize($_POST);
     }
 
     if(isset($post)) {
+        // postで送ってきたものを代入
         $registration_date = $post['registration_date'];
         $date = new DateTime($post['registration_date']);
+        // 曜日を入れる
         $weekday = (int)$date->format('w');
 
         $sleep_start_time = $post['sleep_start_time'];
         $sleep_end_time = $post['sleep_end_time'];
 
+        // 睡眠時間の差をだし、時間だけ取り出す。
         $date = new DateTime($sleep_start_time);
         $date2 = new DateTime($sleep_end_time);
         $interval = date_diff($date, $date2);
@@ -40,6 +44,7 @@
         $nap_start_time = $post['nap_start_time'];
         $nap_end_time = $post['nap_end_time'];
 
+        // 昼寝時間の差をだし、時間だけ取り出す。
         $date3 = new DateTime($nap_start_time);
         $date4 = new DateTime($nap_end_time);
         $interval2 = date_diff($date3, $date4);
@@ -50,11 +55,14 @@
         $event2 = $post['event2'];
         $event3 = $post['event3'];
         $notice = $post['notice'];
+
+        // 体調信号を割り出す為の、カウンタ
         $spirit_signal_yellow = 0;
         $spirit_signal_orenge = 0;
         $spirit_signal_red = 0;
         $spirit_signal_black = 0;
 
+        // SQLに登録してよいか判断する為のフラグ
         $ok_flag = true;
 
         $dsn8 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
@@ -182,12 +190,15 @@
                     if($rec9==false){
                         break;
                     }
+                    // 体調信号が赤以上場合
                     if($rec9['spirit_signal'] >= 4) {
                         $spirit_signal_black++;
                     }
+                    // 体調信号が橙以上の場合
                     if($rec9['spirit_signal'] >= 3) {
                         $spirit_signal_red++;
                     }
+                    // 体調信号が黄以上の場合
                     if($rec9['spirit_signal'] >= 2) {
                         $spirit_signal_orenge++;
                     }
@@ -222,22 +233,28 @@
                         $stmt7 = $dbh7 -> prepare($sql7);
                         $data7 = [];
 
+                        // その日が青や緑だった場合、前の日は関係なくその体調信号になる
                         if($spirit_signal_yellow == 0) {
                             $data7[] = 0;
                             $spirit_signal = 0;
                         }elseif($spirit_signal_yellow == 1) {
                             $data7[] = 1;
                             $spirit_signal = 1;
+                        // その日の体調信号が黄と判定された場合、一週間前までのデータを掛け合わせる
                         }else{
+                            // 赤以上が1週間の間で４回以上あった場合、黒になる
                             if($spirit_signal_black >= 4) {
                                 $data7[] = 5;
                                 $spirit_signal = 5;
+                            // 橙以上が1週間の間で３回以上か黄以上が５回以上あった場合、赤になる
                             }elseif($spirit_signal_red >= 3 || $spirit_signal_orenge >= 5){
                                 $data7[] = 4;
                                 $spirit_signal = 4;
+                            // 黄以上が1週間の間で３回以上があった場合、橙になる
                             }elseif($spirit_signal_orenge >= 3){
                                 $data7[] = 3;
                                 $spirit_signal = 3;
+                            // 上記の条件に当てはまらない場合、黄になる
                             }else{
                                 $data7[] = 2;
                                 $spirit_signal = 2;
@@ -288,6 +305,7 @@
                         $dbh2 = null;
                     }
                 }
+            // conditionに繋げる為にSESSIONに入れる
             session_start();
             $_SESSION['spirit_signal'] = $spirit_signal;
             $_SESSION['monitoring_id'] = $monitoring_id;
@@ -307,11 +325,7 @@
     <!-- 睡眠記入欄 -->
     <h2>睡眠</h2>
     <?php
-    // if($_POST){
-    //     $date = new DateTime($_POST["registration_date"], new \DateTimeZone('Asia/Tokyo'));
-    // }else{
-        $date = new DateTime('now', new \DateTimeZone('Asia/Tokyo'));
-    // }   
+    $date = new DateTime('now', new \DateTimeZone('Asia/Tokyo'));   
     $daytime = $date -> format("Y-m-d");
     $sleep_start =  $daytime . "T00:00";
     $sleep_end = $daytime . "T08:00";
@@ -345,8 +359,8 @@
             <label for="no_sleep">✕：ない</label>
         </div>
         <div class="col-4">
-            <input type="radio" name="sound_sleep" id="not_know_sleep" value="3" <?php if(isset($sound_sleep) && $sound_sleep == 3) { ?> checked="checked" <?php } ?> >
-            <label for="not_know_sleep">△：どちらともいえない</label>
+            <input type="radio" name="sound_sleep" id="dont_know_to_sleep" value="3" <?php if(isset($sound_sleep) && $sound_sleep == 3) { ?> checked="checked" <?php } ?> >
+            <label for="dont_know_to_sleep">△：どちらともいえない</label>
         </div>
     </div>
     <br>
@@ -366,8 +380,8 @@
             <label for="no_nap">✕：いいえ</label>
         </div>
         <div class="col-2">
-            <input type="radio" name="nap" id="not_know_nap" value="3" <?php if(isset($nap) && $nap == 3) { ?> checked="checked" <?php } ?>>
-            <label for="not_know_nap">？：忘れた</label>
+            <input type="radio" name="nap" id="dont_know_to_nap" value="3" <?php if(isset($nap) && $nap == 3) { ?> checked="checked" <?php } ?>>
+            <label for="dont_know_to_nap">？：忘れた</label>
         </div>
     </div>
     <br>
@@ -391,7 +405,7 @@
     <br>
 
     <?php
-    // 信号リスト
+    // 体調レベルリスト
     $signal_list = array(
         '1' => '1', '2' => '2', '3' => '3', '4' => '4',
     );
@@ -413,6 +427,7 @@
     <p>ー:やってない(判定できない)</p>
     <br>
 
+    <!-- 青信号のみを回す -->
     <?php
         $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
         $user = 'root';
@@ -421,9 +436,11 @@
         $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-        $sql3 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
+        $sql3 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE color = ?';
         $stmt3 = $dbh -> prepare($sql3);
-        $stmt3 -> execute();
+        $data3 = [];
+        $data3[] = 0;
+        $stmt3 -> execute($data3);
 
         $dbh = null;
 
@@ -432,11 +449,10 @@
             if($rec==false){
                 break;
             }
+            // 不必要となったら、記録しない
             if($rec['display_unnecessary'] == 1){
                 continue;
             }
-
-            if($rec['color'] == 0){
     
             $item_id = $rec['id']
             ?>
@@ -444,18 +460,18 @@
             <input type="hidden" name="id" value="<?= $rec['id']; ?>">
             <label for="<?= $item_id; ?>"><?php print $rec['item']; ?></label>
             </h5>
+            <!-- nameをidにして、被らないようにして、postで送る -->
             <select name="<?= $item_id; ?>" id="<?= $item_id; ?>">
                 <option value="" selected >--選択して下さい--</option>
                 <option value="0" <?php if(isset($post[$item_id]) && is_numeric($post[$item_id])) {  ?> selected <?php } ?> >0</option>
                 <?php foreach ($signal_list as $v => $value) : ?>
                     <option value="<?= $v ?>" <?php if(isset($post[$item_id]) && $post[$item_id] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
                 <?php endforeach ?>
-                <option value="5">-</option>
+                <option value="5" <?php if(isset($post[$item_id]) && $post[$item_id] == "5" ) { ?> selected <?php } ?> >-</option>
             </select>
             <br>
             <br>
-            <?php } 
-        } ?>
+        <?php }  ?>
         <input type="button" value="一括(-)">
         <br><br><br><br>
 
@@ -477,9 +493,11 @@
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     
-            $sql4 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
+            $sql4 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE color = ?';
             $stmt4 = $dbh -> prepare($sql4);
-            $stmt4 -> execute();
+            $data4 = [];
+            $data4[] = 2;
+            $stmt4 -> execute($data4);
 
             $dbh = null;
             
@@ -488,16 +506,17 @@
                 if($rec2==false){
                     break;
                 }
+                // 不必要となったら、記録しない
                 if($rec2['display_unnecessary'] == 1){
                     continue;
                 }
-
-                if($rec2['color'] == 2) {
-                    $yellow_item_id = $rec2['id'];
+            
+                $yellow_item_id = $rec2['id'];
                 ?>
                 <h5>
                 <label for="<?= $yellow_item_id; ?>"><?php print $rec2['item']; ?></label>
                 </h5>
+                <!-- nameをidにして、被らないようにして、postで送る -->
                 <select name="<?= $yellow_item_id; ?>" id="<?= $yellow_item_id; ?>">
                     <option value="" selected >--選択して下さい--</option>
                     <option value="0" <?php if(isset($post[$yellow_item_id]) && is_numeric($post[$yellow_item_id])) {  ?> selected <?php } ?> >0</option>
@@ -506,9 +525,8 @@
                     <?php endforeach ?>
                 </select>
                 <br>
-                <br>
-                <?php }
-            } ?>
+                <br>    
+            <?php } ?>
  
     <input type="button" value="一括(0)">
     <br><br><br><br>

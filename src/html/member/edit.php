@@ -18,20 +18,23 @@
 
     <?php
     session_start();
+    // サニタイジング
     if(!empty($_POST)){
         require_once('../common.php');
         $post = sanitize($_POST);
     }
 
     if(isset($post)) {
+        // postで送ってきたものを代入
         $entries_date = $_SESSION['date'];
         $date5 = new DateTime($entries_date);
+        // 曜日を入れる
         $weekday = (int)$date5->format('w');
 
         $monitoring_id = $post['monitoring_id'];
         $sleep_start_time = $post['sleep_start_time'];
         $sleep_end_time = $post['sleep_end_time'];
-
+        // 睡眠時間の差をだし、時間だけ取り出す。   
         $date = new DateTime($sleep_start_time);
         $date2 = new DateTime($sleep_end_time);
         $interval = date_diff($date, $date2);
@@ -42,6 +45,7 @@
         $nap_start_time = $post['nap_start_time'];
         $nap_end_time = $post['nap_end_time'];
 
+        // 昼寝時間の差をだし、時間だけ取り出す。
         $date3 = new DateTime($nap_start_time);
         $date4 = new DateTime($nap_end_time);
         $interval2 = date_diff($date3, $date4);
@@ -52,11 +56,14 @@
         $event2 = $post['event2'];
         $event3 = $post['event3'];
         $notice = $post['notice'];
+
+        // 体調信号を割り出す為の、カウンタ
         $spirit_signal_yellow = 0;
         $spirit_signal_orenge = 0;
         $spirit_signal_red = 0;
         $spirit_signal_black = 0;
 
+        // SQLに登録してよいか判断する為のフラグ
         $ok_flag = true;
 
         // エラー
@@ -138,12 +145,15 @@
                 if($rec9==false){
                     break;
                 }
+                // 体調信号が赤以上場合
                 if($rec9['spirit_signal'] >= 4) {
                     $spirit_signal_black++;
                 }
+                // 体調信号が橙以上の場合
                 if($rec9['spirit_signal'] >= 3) {
                     $spirit_signal_red++;
                 }
+                // 体調信号が黄以上の場合
                 if($rec9['spirit_signal'] >= 2) {
                     $spirit_signal_orenge++;
                 }
@@ -181,22 +191,28 @@
                     $sql7 = 'UPDATE monitoring SET spirit_signal=? WHERE id = ?';
                     $stmt7 = $dbh7 -> prepare($sql7);
                     $data7 = [];
+                    // その日が青や緑だった場合、前の日は関係なくその体調信号になる
                     if($spirit_signal_yellow == 0) {
                         $data7[] = 0;
                         $spirit_signal = 0;
                     }elseif($spirit_signal_yellow == 1) {
                         $data7[] = 1;
                         $spirit_signal = 1;
+                    // その日の体調信号が黄と判定された場合、一週間前までのデータを掛け合わせる                    
                     }else{
+                        // 赤以上が1週間の間で４回以上あった場合、黒になる
                         if($spirit_signal_black >= 4) {
                             $data7[] = 5;
                             $spirit_signal = 5;
+                        // 橙以上が1週間の間で３回以上か黄以上が５回以上あった場合、赤になる
                         }elseif($spirit_signal_red >= 3 || $spirit_signal_orenge >= 5){
                             $data7[] = 4;
                             $spirit_signal = 4;
+                        // 黄以上が1週間の間で３回以上があった場合、橙になる
                         }elseif($spirit_signal_orenge >= 3){
                             $data7[] = 3;
-                            $spirit_signal = 3      ;
+                            $spirit_signal = 3;
+                        // 上記の条件に当てはまらない場合、黄になる
                         }else{
                             $data7[] = 2;
                             $spirit_signal = 2;
@@ -244,6 +260,7 @@
                     $dbh8 = null;
 
                     $rec8 = $stmt8->fetch(PDO::FETCH_ASSOC);
+                    // condition_levelsのidを"id"につけてpostで送った。あれば受け取る。
                     $id = "id" . $rec8['id'];
                     $level_id = $post[$id];
                     
@@ -265,6 +282,7 @@
 
                     $dbh6 = null;
                     } else {
+                        // condition_levelsに登録されていなくて、新規に登録する場合
                         if(isset($condition_level)) {
                             $dsn9 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                             $user9 = 'root';
@@ -286,6 +304,7 @@
                     }
                 }
             }
+            // conditionに繋げる為にSESSIONに入れる
             $_SESSION['spirit_signal'] = $spirit_signal;
             $_SESSION['monitoring_id'] = $monitoring_id;
 

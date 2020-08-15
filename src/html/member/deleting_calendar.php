@@ -1,6 +1,6 @@
 <?php
                 $M = 0;
-
+                // 今月から比べて、月の違いがあるかを送ってくる。
                 if(isset($_GET["tsuki"]) && is_numeric($_GET["tsuki"]) && is_int( (int) $_GET["tsuki"])) {
                     $M = (int) $_GET["tsuki"];
                 }
@@ -38,6 +38,7 @@
         <tr>
                 <?php
                 $date = new DateTime('now', new \DateTimeZone('Asia/Tokyo'));
+            　   // 送られてた月の差分によって今月からの差を出す。
                 if($M >= 0) {
                     $date -> add(new DateInterval("P{$M}M"));
                 }else{
@@ -48,14 +49,19 @@
                 $year = $date->format('Y');
                 $month = $date->format('m');
                 print $date -> format('Y年n月');
+                // その月の１日目を出し、カレンダーを作る。
                 $month1day = new DateTime("{$year}/{$month}/01");
                 $to = new DateTime();
+                // 日付にハイパーリンクをつける為のもの
                 $yearmonth = $to -> format("{$year}-{$month}-");
+                // その月の一日目の曜日を出す。
                 $weekDay01= $month1day->format('w');
+                // 一日目までの配列に空白を入れる。
                 for($i = 0; $i < $weekDay01; $i++){
                     ?> <td></td> <?php
                 }
 
+                // その月の最終日とその曜日を出す。
                 $monthLastDay = new DateTime("{$year}/{$month}/{$days}");
                 $weekLastDay = $monthLastDay->format('w');
 
@@ -64,6 +70,7 @@
                     $hi = $i;
                     break;
                     }
+                    // 日付が二桁じゃないとentries_dateに対応しない為
                     $special_date = $yearmonth."0".$i;
 
                     $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
@@ -81,9 +88,11 @@
                     $dbh = null;
                     $special_roop = 0;
 
+                    // is_deletedで消したものがある場合の為のループ
                     while(true) {
                         $rec = $stmt->fetch(PDO::FETCH_ASSOC);
                         if($rec==false){
+                            // ハイパーリンクを作ってない場合
                             if($special_roop == 0) {
                                 ?> <td> <?php print $i ?></td><?php
                             }
@@ -94,12 +103,16 @@
                         }
 
                         ?> <td><a href="./delete.php?date=<?= $special_date; ?>"><?php print $i?></a></td> <?php
+                        $special_roop++;
                     }
                 }
-                ?> </tr> <?php
+                ?> </tr> 
+                <tr> <?php 
+　               // 7日たったら、次の行にいくようにする為、カウントする。初期値。
                 $count = 0;
                 for($i = $hi; $i <= $days; $i++){
                     $count++;
+                    // 日付が二桁じゃないとentries_dateに対応しない為
                     if($i < 10){
                         $special_date = $yearmonth."0".$i;
                     }else{
@@ -121,9 +134,11 @@
                     $dbh = null;
                     $special_roop = 0;
 
+                    // is_deletedで消したものがある場合の為のループ
                     while(true) {
                         $rec = $stmt->fetch(PDO::FETCH_ASSOC);
                         if($rec==false){
+                            // ハイパーリンクを作ってない場合
                             if($special_roop == 0) {
                                 ?> <td> <?php print $i ?></td><?php
                             }
@@ -136,14 +151,17 @@
                         ?> <td><a href="./delete.php?date=<?= $special_date; ?>"><?php print $i?></a></td> <?php
                         $special_roop++;
                     }
-                
+
+                    // 7日たったら、次の行にいくようにする
                     if($count == 7){
                         $count = 0;
-                        ?> </tr> <?php
+                        ?> </tr> 
+                        <tr> <?php
                     }
                 }
                 for($i = 0; $i < (6-$weekLastDay); $i++) {
-                    ?> <td></td> <?php
+                    ?> <td></td>
+                    </tr> <?php
                 }        
                ?>
     </table>

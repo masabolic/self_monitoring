@@ -61,7 +61,7 @@
                     ?> <td></td> <?php
                 }
 
-                // 最終日とその曜日を出す。
+                // その月の最終日とその曜日を出す。
                 $monthLastDay = new DateTime("{$year}/{$month}/{$days}");
                 $weekLastDay = $monthLastDay->format('w');
 
@@ -166,7 +166,7 @@
                ?>
     </table>
     <div class = "navi offset-md-1">
-    <p><a href="./edit_calendar.php?tsuki=<?= $M - 1;  ?>">
+    <p><a href="./edit_calendar.php?tsuki=<?= $M - 1; ?>">
     &lt;&lt;前の月へ</a></p>
     <p><a href="./edit_calendar.php">今月へ</a></p>
     <p><a href="./edit_calendar.php?tsuki=<?= $M + 1; ?>">

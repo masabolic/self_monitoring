@@ -15,6 +15,7 @@
     <br>
 
     <?php
+    // is_deletedを1にして、基本表示しないようにする。
         $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
         $user = 'root';
         $password = '';

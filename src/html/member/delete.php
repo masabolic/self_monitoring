@@ -11,14 +11,16 @@
 <body>
 <div class="container">
     <div class="col-8">
-        <h1>削除</h1>    <?php
-    if(!empty($_POST)){
-        require_once('../common.php');
-        $post = sanitize($_POST);
-    }
+        <h1>削除</h1>
+        <?php
+        // サニタイジング
+        if(!empty($_POST)){
+            require_once('../common.php');
+            $post = sanitize($_POST);
+        }
 
-    $day = $_GET["date"];
-    ?>
+        $day = $_GET["date"];
+        ?>
 
     <button type="button" onclick="location.href='./selected_screen.php'">最初の画面へ</button>
     <button type="button" onclick="history.back()">元に戻る</button>
@@ -34,9 +36,12 @@
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-            $sql = 'SELECT id, display_unnecessary, color FROM physical_condition_items WHERE 1';
+            $sql = 'SELECT id, display_unnecessary, color FROM physical_condition_items WHERE color = ? OR color = ? ';
             $stmt = $dbh -> prepare($sql);
-            $stmt -> execute();
+            $data = [];
+            $data[] = 0;
+            $data[] = 2; 
+            $stmt -> execute($data);
 
             $dbh = null;
 
@@ -83,9 +88,12 @@
                 $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-                $sql = 'SELECT item, short_name, display_unnecessary, color FROM physical_condition_items WHERE 1';
+                $sql = 'SELECT item, short_name, display_unnecessary, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
                 $stmt = $dbh -> prepare($sql);
-                $stmt -> execute();
+                $data = [];
+                $data[] = 0;
+                $data[] = 0;
+                $stmt -> execute($data);
 
                 $dbh = null;
 
@@ -94,15 +102,8 @@
                     if($rec==false){
                         break;
                     }
-                    if($rec['display_unnecessary'] == 1){
-                        continue;
-                    }
-
-                    if($rec['color'] == 0){
-                            ?> <th> <?php print $rec['item'] ?> </th>
-
-                    <?php }
-                }
+                    ?> <th> <?php print $rec['item'] ?> </th>
+                <?php }
 
                 // 黄信号の項目をthに書き出す
                 $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
@@ -112,9 +113,12 @@
                 $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-                $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE 1';
+                $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
                 $stmt = $dbh -> prepare($sql);
-                $stmt -> execute();
+                $data = [];
+                $data[] = 0;
+                $data[] = 2;
+                $stmt -> execute($data);
 
                 $dbh = null;
                 
@@ -123,15 +127,8 @@
                     if($rec==false){
                         break;
                     }
-                    if($rec['display_unnecessary'] == 1){
-                        continue;
-                    }
-
-                    if($rec['color'] == 2) {
-                            ?> <th> <?php print $rec['item'] ?> </th>
-                    <?php }
-                } 
-            ?>
+                    ?> <th> <?php print $rec['item'] ?> </th>
+                <?php } ?>
             <th>合計</th>
             <th>体調</th>
             <th width="100px">出来事1</th>
@@ -157,7 +154,7 @@
 
             $dbh = null;
 
-            // 曜日、熟睡度、昼寝、天気の配列
+            // 曜日、熟睡度、昼寝、天気の配列、体調信号
             $week = array("日", "月", "火", "水", "木", "金", "土");
             $sound = array("", "〇", "✕", "△");
             $sound_nap = array("", "〇", "✕", "？");
@@ -322,6 +319,7 @@
         </tr>
     </table>
 
+        <!-- 削除するidと日付を送る -->
         <form method="post" action="deleting_fixed.php">
             <input type="hidden" name="id" value="<?= $rec['id']; ?>">
             <input type="hidden" name="date" value="<?= $day; ?>">

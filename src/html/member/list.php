@@ -19,6 +19,7 @@
     <br><br>
 
     <?php
+    // サニタイジング
     if(!empty($_POST)){
         require_once('../common.php');
         $post = sanitize($_POST);
@@ -70,9 +71,12 @@
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-            $sql = 'SELECT id, display_unnecessary, color FROM physical_condition_items WHERE 1';
+            $sql = 'SELECT id, display_unnecessary, color FROM physical_condition_items WHERE color = ? OR color = ?';
             $stmt = $dbh -> prepare($sql);
-            $stmt -> execute();
+            $data = [];
+            $data[] = 0;
+            $data[] = 2; 
+            $stmt -> execute($data);
 
             $dbh = null;
 
@@ -124,9 +128,12 @@
                 $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-                $sql = 'SELECT item, short_name, display_unnecessary, color FROM physical_condition_items WHERE 1';
+                $sql = 'SELECT item, short_name FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
                 $stmt = $dbh -> prepare($sql);
-                $stmt -> execute();
+                $data = [];
+                $data[] = 0;
+                $data[] = 0;
+                $stmt -> execute($data);
 
                 $dbh = null;
 
@@ -135,17 +142,13 @@
                     if($rec==false){
                         break;
                     }
-                    if($rec['display_unnecessary'] == 1){
-                        continue;
-                    }
 
-                    if($rec['color'] == 0){
-                        if($abbreviation == 0) {
-                            ?> <th> <?php print $rec['item'] ?> </th>
-                        <?php }else{ 
-                            ?> <th> <?php print $rec['short_name'] ?> </th>
-                        <?php }
-                    }
+                    if($abbreviation == 0) {
+                        ?> <th> <?php print $rec['item'] ?> </th>
+                    <?php }else{ 
+                        ?> <th> <?php print $rec['short_name'] ?> </th>
+                    <?php }
+                    
                 }
 
                 // 黄信号の項目をthに書き出す
@@ -156,9 +159,12 @@
                 $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-                $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE 1';
+                $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
                 $stmt = $dbh -> prepare($sql);
-                $stmt -> execute();
+                $data = [];
+                $data[] = 0;
+                $data[] = 2;
+                $stmt -> execute($data);
 
                 $dbh = null;
                 
@@ -167,17 +173,11 @@
                     if($rec==false){
                         break;
                     }
-                    if($rec['display_unnecessary'] == 1){
-                        continue;
-                    }
-
-                    if($rec['color'] == 2) {
-                        if($abbreviation == 0) {
-                            ?> <th> <?php print $rec['item'] ?> </th>
-                        <?php }else{ 
-                            ?> <th> <?php print $rec['short_name'] ?> </th>
-                        <?php }
-                    }
+                    if($abbreviation == 0) {
+                        ?> <th> <?php print $rec['item'] ?> </th>
+                    <?php }else{ 
+                        ?> <th> <?php print $rec['short_name'] ?> </th>
+                    <?php }
                 } 
             ?>
             <th>合計</th>
@@ -209,8 +209,10 @@
 
             $sql = "SELECT id, entries_date, weekday, sleep_start_time, sleep_end_time, sleep_sum, sound_sleep, nap, nap_start_time, nap_end_time, nap_sum, spirit_signal, weather, event1, event2, event3, notice, is_deleted FROM monitoring  WHERE entries_date >= ? AND entries_date <= ? ORDER BY entries_date DESC";
             $data = [];
+            // 一ヶ月間表示
             if($period == 1) {
                 $data[] = $before_month;
+            // 一週間表示
             }else{
                 $data[] = $before_week;
             }
@@ -220,7 +222,7 @@
 
             $dbh = null;
 
-            // 曜日、熟睡度、昼寝、天気の配列
+            // 曜日、熟睡度、昼寝、天気の配列、体調信号
             $week = array("日", "月", "火", "水", "木", "金", "土");
             $sound = array("", "〇", "✕", "△");
             $sound_nap = array("", "〇", "✕", "？");
@@ -393,21 +395,7 @@
         </tr>
         <?php } ?>
     
-
-
-
-
-
-
-
-
     </table>
-
-
-
-
-
-
 </div>
 
 </body>

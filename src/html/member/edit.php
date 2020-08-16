@@ -612,10 +612,8 @@
             </select>
             <br>
             <br>
-            <?php }
-        }
-    ?>
-
+        <?php } ?>
+    
     <input type="button" value="一括(0)">
     <br><br><br><br>
 

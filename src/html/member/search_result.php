@@ -622,11 +622,11 @@
 
                     // 検索結果に制限をかける。
                     if($count == 2) {
-                        if(limit > 10) {
+                        if($limit > 10) {
                             break;
                         }
                     }elseif($count == 1) {
-                        if(limit > 50) {
+                        if($limit > 50) {
                             break;
                         }
                     }

@@ -38,7 +38,7 @@
         <tr>
                 <?php
                 $date = new DateTime('now', new \DateTimeZone('Asia/Tokyo'));
-            　   // 送られてた月の差分によって今月からの差を出す。
+                // 送られてた月の差分によって今月からの差を出す。
                 if($M >= 0) {
                     $date -> add(new DateInterval("P{$M}M"));
                 }else{
@@ -108,7 +108,7 @@
                 }
                 ?> </tr> 
                 <tr> <?php 
-　               // 7日たったら、次の行にいくようにする為、カウントする。初期値。
+                // 7日たったら、次の行にいくようにする為、カウントする。初期値。
                 $count = 0;
                 for($i = $hi; $i <= $days; $i++){
                     $count++;
@@ -161,9 +161,8 @@
                 }
                 for($i = 0; $i < (6-$weekLastDay); $i++) {
                     ?> <td></td>
-                    </tr> <?php
-                }        
-               ?>
+                <?php } ?>
+            </tr>
     </table>
     <div class = "navi offset-md-1">
     <p><a href="./deleting_calendar.php?tsuki=<?= $M - 1;  ?>">

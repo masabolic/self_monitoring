@@ -161,9 +161,9 @@
                 }
                 for($i = 0; $i < (6-$weekLastDay); $i++){
                     ?> <td></td> 
-                    </tr> <?php
-                }        
-               ?>
+                    <?php
+                } ?>
+                </tr>
     </table>
     <div class = "navi offset-md-1">
     <p><a href="./edit_calendar.php?tsuki=<?= $M - 1; ?>">

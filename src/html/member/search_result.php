@@ -20,6 +20,7 @@
         $post = sanitize($_POST);
     }
 
+    // 件数と略称の初期値
     $count = 0;
     $abbreviation = 0;
 
@@ -55,7 +56,7 @@
     <input type="hidden" name="weather" value="<?= $post['weather'] ?>">
     <input type="hidden" name="event" value="<?= $post['event'] ?>">
 
-    <!-- 青信号 -->
+    <!-- 青信号と黄信号(以上以下も)引き継ぐ -->
     <?php
         $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
         $user3 = 'root';
@@ -193,7 +194,7 @@
                 $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-                $sql = 'SELECT item, short_name, display_unnecessary, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
+                $sql = 'SELECT item, short_name, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
                 $stmt = $dbh -> prepare($sql);
                 $data = [];
                 $data[] = 0;
@@ -222,9 +223,12 @@
                 $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-                $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE 1';
+                $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
                 $stmt = $dbh -> prepare($sql);
-                $stmt -> execute();
+                $data = [];
+                $data[] = 0;
+                $data[] = 2;
+                $stmt -> execute($data);
 
                 $dbh = null;
                 
@@ -233,19 +237,13 @@
                     if($rec==false){
                         break;
                     }
-                    if($rec['display_unnecessary'] == 1){
-                        continue;
-                    }
 
-                    if($rec['color'] == 2) {
-                        if($abbreviation == 0) {
-                            ?> <th> <?php print $rec['item'] ?> </th>
-                        <?php }else{ 
-                            ?> <th> <?php print $rec['short_name'] ?> </th>
-                        <?php }
-                    }
-                } 
-            ?>
+                    if($abbreviation == 0) {
+                        ?> <th> <?php print $rec['item'] ?> </th>
+                    <?php }else{ 
+                        ?> <th> <?php print $rec['short_name'] ?> </th>
+                    <?php }
+                } ?>
             <th>合計</th>
             <th>体調</th>
             <th width="100px">出来事1</th>
@@ -274,6 +272,7 @@
                 $condition_up_down = $post['condition_up_down'];
                 $weather = $post['weather'];
                 $event = $post['event'];
+                // 青や黄信号が検索に使われたか判定
                 $signal_flag = false;
 
                 //　検索をする
@@ -296,6 +295,7 @@
                 if(!empty($end_day)) {
                     $sql .= "AND entries_date <= ? ";
                 }
+                // データベースには日付と秒も含まれているため、LIKE
                 if(!empty($start_to_sleep)){
                     $sql .= "AND sleep_start_time LIKE ? ";
                 }
@@ -303,6 +303,7 @@
                     $sql .= "AND sleep_end_time LIKE ? ";
                 }
                 if(!empty($sleep_total)){
+                    // up_downは以上、以下。0の時以下、1の時以上
                     if(is_numeric($sleep_up_down) && $sleep_up_down == 0) {
                         $sql .= "AND sleep_sum <= ? ";
                     }elseif($sleep_up_down == 1) {
@@ -316,7 +317,8 @@
                 }
                 if(!empty($nap_total)) {
                     if(is_numeric($nap_up_down) && $nap_up_down == 0) {
-                        $sql .= "AND nap_sum <= ? ";
+                    // up_downは以上、以下。0の時以下、1の時以上
+                    $sql .= "AND nap_sum <= ? ";
                     }elseif($nap_up_down == 1) {
                         $sql .= "AND nap_sum >= ? ";
                     }else{
@@ -354,6 +356,7 @@
                             }
                         }elseif($rec4['color'] == 2 && is_numeric($yellow_signal)) {
                             if($yellow_signal == $rec4['condition_level']){
+                                // up_downは以上、以下。0の時以下、1の時以上
                                 if(is_numeric($yellow_up_down) && $yellow_up_down == 0) {
                                     $sql .= " (condition_id=? AND condition_level<=? ) OR";
                                 }elseif($yellow_up_down == 1) {
@@ -388,6 +391,10 @@
                         }
                         break;
                     }
+                    // 削除されているか確認
+                    if($rec6['display_unnecessary'] == 1){
+                        continue;
+                    }
                     $physical_id = '';
                     // 青と黄の時に通る
                     if($rec6['color'] == 0 || $rec6['color'] == 2) {
@@ -409,13 +416,10 @@
                                     $signal_flag = true;
                                     $condition_flag = true;
                                 }
-                                // 削除されているか確認
-                                if($rec6['display_unnecessary'] == 1){
-                                    continue;
-                                }
                                 if($physical_id == $rec6['id']){
                                     if($signal_name == $rec6['condition_level']) {
                                         if($rec6['color'] == 2){
+                                            // up_downは以上、以下。0の時以下、1の時以上
                                             if(is_numeric($signal_up_down) && $signal_up_down == 0) {
                                                 $sql .= " (condition_id=? AND condition_level<=? ) OR";
                                             }elseif($signal_up_down == 1) {
@@ -554,6 +558,9 @@
                         }
                         break;
                     }
+                    if($rec7['display_unnecessary'] == 1){
+                        continue;
+                    }
                     $physical_id = '';
                     if($rec7['color'] == 0 || $rec7['color'] == 2) {
                         if(is_numeric($post[$rec7['id']])) {
@@ -563,9 +570,6 @@
                             $item_id = 'signal' . $physical_id;
                             $signal_name = $post[$item_id];
                             if(is_numeric($signal_name)){
-                                if($rec7['display_unnecessary'] == 1){
-                                    continue;
-                                }
                                 if($physical_id == $rec7['id']){
                                     if($signal_name == $rec7['condition_level']) {
                                         $data[] = $rec7['id'];

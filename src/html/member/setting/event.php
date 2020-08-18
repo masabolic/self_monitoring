@@ -25,6 +25,7 @@
 
         foreach($weekday_list as $w => $y) {
             for($i=1; $i<=3; $i++){
+                // 曜日の英語名の後に、1~3の番号を付けてpostで送られてくるのを受け取る。
                 $week = $y . $i;
 
                 $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
@@ -97,6 +98,7 @@
     
     
     <?php
+    // 初期値を入れる為、データベースを呼び出す。
     $weekday = array("0" => "日", "1" => "月", "2" => "火", "3" => "水", "4" => "木", "5" => "金", "6" => "土");
     
     $dsn4 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
@@ -116,6 +118,7 @@
         if($rec4==false) {
             break;
         }
+        // 曜日と1~3の番号で2重配列を作る
         $week_list[$rec4['weekday']][$rec4['number']] = $rec4['weekday_item'];
     } ?>
     
@@ -126,6 +129,7 @@
             <th><?php print $d ?></th>
             <?php
             for($i=1; $i<=3; $i++){
+                // 曜日の英語名の後に、1~3の番号を付けてpostで送る。
                 $week = $weekday_list[$e] . $i;
             ?><td><input type="text" name="<?= $week ?>" <?php if(isset($week_list[$e][$i])) { ?> value="<?= $week_list[$e][$i] ?>" <?php } ?>></td>
             <?php } ?>

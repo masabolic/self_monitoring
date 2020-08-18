@@ -15,7 +15,7 @@
     <br>
 
     <?php
-
+    // サニタイジング
     if(!empty($_POST)){
         require_once('../../../common.php');
         $post = sanitize($_POST);
@@ -63,6 +63,7 @@
             print "<br>";
             print "を登録しました。";
 
+            // 信号を新規追加する
             $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
             $user = 'root';
             $password = '';

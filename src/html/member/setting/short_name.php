@@ -14,6 +14,7 @@
     </div>
     <br>
     <?php 
+    // サニタイジング
     if(!empty($_POST)){
         require_once('../../common.php');
         $post = sanitize($_POST);
@@ -31,6 +32,7 @@
         $stmt2 -> execute();
 
         $dbh2 = null;
+        // 文字数制限をオバーしている個数をカウントするための初期値
         $over = 0;
 
         while(true) {
@@ -39,12 +41,14 @@
                 break;
             }
 
+            // エラーをフラグで確認する
             $ok_flag = false;
 
             if(isset($rec2["id"])) {
                 $item_id = 'signal' . $rec2['id'];
                 $ok_flag = true;
                 if(mb_strlen($post[$item_id], 'UTF-8') > 5){
+                    // 文字数制限をオバーしている個数をカウントする
                     $over++;
                     $ok_flag = false;
                 }

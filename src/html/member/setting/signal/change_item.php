@@ -23,6 +23,7 @@
         $post = sanitize($_POST);
     }
 
+    // 青信号の要不要を表示
     if(isset($post['blue_signal'])) {
         print $post['blue_signal'];
         print "<br>";
@@ -33,6 +34,7 @@
         }
     }
 
+    // 青信号以外の要不要を表示。記載する状態の変更
     if(isset($post['signal'])) {
         print $post['signal'];
         print "<br>";
@@ -45,6 +47,7 @@
         print $signal_color[$post['signal_color']];
     }
 
+    // 既存信号をアップデートする
     if(isset($post['blue_signal']) || isset($post['signal'])) {
         $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
         $user = 'root';

@@ -89,6 +89,8 @@
     $signal_list = array(
         '1' => '1', '2' => '2', '3' => '3', '4' => '4',
     );
+    // 体調・精神信号
+    $spirit = array("青", "緑", "黄", "橙", "赤", "黒");
 
     ?>
     
@@ -116,6 +118,7 @@
     </h5>
     <br>
 
+    <!-- 青信号の項目を表示する -->
     <?php
         $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
         $user3 = 'root';
@@ -124,9 +127,10 @@
         $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-        $sql3 = 'SELECT id, item, display_unnecessary FROM physical_condition_items WHERE color = ?';
+        $sql3 = 'SELECT id, item FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
         $stmt3 = $dbh3 -> prepare($sql3);
         $data3 = [];
+        $data3[] = 0;
         $data3[] = 0;
         $stmt3 -> execute($data3);
 
@@ -138,10 +142,7 @@
             if($rec3==false){
                 break;
             }
-            if($rec3['display_unnecessary'] == 1){
-                continue;
-            }
-
+                // signal + id をnameにして、postで送る。
                 $item_id = 'signal' . $rec3['id'];
                 ?>
                 <h5>
@@ -189,7 +190,7 @@
     </select>
     </h5>
     <br>
-    
+    <!-- 黄信号の項目を表示する -->
     <?php 
         $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
         $user = 'root';
@@ -198,9 +199,12 @@
         $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-        $sql = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE 1';
+        $sql = 'SELECT id, item FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
         $stmt = $dbh -> prepare($sql);
-        $stmt -> execute();
+        $data = [];
+        $data[] = 0;
+        $data[] = 2;
+        $stmt -> execute($data);
 
         $dbh = null;
         
@@ -209,11 +213,8 @@
             if($rec==false){
                 break;
             }
-            if($rec['display_unnecessary'] == 1){
-                continue;
-            }
 
-            if($rec['color'] == 2) {
+            // signal + id、up_down + id をnameにして、postで送る。
                 $yellow_item_id = 'signal' . $rec['id'];
                 $up_down = 'up_down' . $rec['id'];
             ?>
@@ -234,19 +235,15 @@
             </select>
             </h5>
             <br>
-            <?php }
-        } ?>    
+        <?php } ?>    
     
     <h5>
     <label for="condition">体調・精神信号</label>
     <select name="condition" id="condition">
         <option value="" selected>　</option>
-        <option value="0">青</option>
-        <option value="1">緑</option>
-        <option value="2">黄</option>
-        <option value="3">橙</option>
-        <option value="4">赤</option>
-        <option value="5">黒</option>
+        <?php foreach( $spirit as $s => $t) { ?>
+            <option value="<?= $s ?>"><?php print $t ?></option>
+        <?php } ?>
     </select>
     <select name="condition_up_down" id="condition_up_down">
         <option value="" selected>　　</option>

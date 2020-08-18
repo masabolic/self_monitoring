@@ -24,4 +24,7 @@
 
 ⭐︎calenderのmonitor.cssいる？？
 
+新規項目追加の幅を空ける
+
+
 

@@ -14,6 +14,7 @@
     </div>
     <br>
     <?php
+    // サニタイジング
     if(!empty($_POST)){
         require_once('../../common.php');
         $post = sanitize($_POST);
@@ -93,7 +94,7 @@
     }
 
       
-
+    // 初期値を入れる為にデータベースを呼び出す。
     $dsn4 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
     $user4 = 'root';
     $password4 = '';

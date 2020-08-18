@@ -25,7 +25,7 @@
 
     <table border="1">
         <?php
-        // 青の項目を書き出す
+        // 青の項目を書き出す(1項目ごとに変更ボタンをつける)
         $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
         $user = 'root';
         $password = '';
@@ -62,7 +62,7 @@
         <?php } ?>
 
         <?php
-        // 黄の項目を書き出す
+        // 黄の項目を書き出す(1項目ごとに変更ボタンをつける)
         $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
         $user = 'root';
         $password = '';
@@ -103,7 +103,7 @@
             </form>
         </tr>
         <?php } 
-        // 追加黄の項目を書き出す
+        // 追加黄の項目を書き出す(1項目ごとに変更ボタンをつける)
         $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
         $user = 'root';
         $password = '';
@@ -144,7 +144,7 @@
             </form>
         </tr>
         <?php }
-        // 追加橙の項目を書き出す
+        // 追加橙の項目を書き出す(1項目ごとに変更ボタンをつける)
         $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
         $user = 'root';
         $password = '';
@@ -185,7 +185,7 @@
             </form>
         </tr>
         <?php }
-        // 追加赤の項目を書き出す
+        // 追加赤の項目を書き出す(1項目ごとに変更ボタンをつける)
         $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
         $user = 'root';
         $password = '';

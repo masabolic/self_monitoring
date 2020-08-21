@@ -262,6 +262,79 @@
 
     <?php }
 
+    if($spirit_signal >= 3) {
+    ?>
+
+        <h3>
+        追加橙
+        </h3>
+        <br>
+
+        <?php
+        // 追加黄項目だけを取り出す
+        $dsn9 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+        $user9 = 'root';
+        $password9 = '';
+        $dbh9 = new PDO($dsn9, $user9, $password9);
+        $dbh9->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+        $sql9 = 'SELECT id, item, display_unnecessary FROM physical_condition_items WHERE color = ?';
+        $stmt9 = $dbh9 -> prepare($sql9);
+        $data9 = [];
+        $data9[] = 7;
+        $stmt9 -> execute($data9);
+
+        $dbh9 = null;
+
+        while(true) {
+            $rec9 = $stmt9->fetch(PDO::FETCH_ASSOC);
+            if($rec9==false){
+                break;
+            }
+            // 不必要となったら、記録しない
+            if($rec9['display_unnecessary'] == 1){
+                continue;
+            }
+            
+            // 追加黄項目の２つのidを入れて、元々入ってた場合の初期値を呼び出す。
+            $dsn10 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+            $user10 = 'root';
+            $password10 = '';
+            $dbh10 = new PDO($dsn10, $user10, $password10);
+            $dbh10->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+            $sql10 = 'SELECT id, condition_level FROM condition_levels WHERE monitoring_id = ? AND condition_id = ?';
+            $data10 = [];
+            $data10[] = $monitoring_id;
+            $data10[] = $rec9['id'];
+            $stmt10 = $dbh10 -> prepare($sql10);
+            $stmt10 -> execute($data10);
+
+            $dbh10 = null;
+            $rec10 = $stmt10->fetch(PDO::FETCH_ASSOC);
+            ?>
+            <h5>
+                <label for="<?= $rec9['id']; ?>"><?php print $rec9['item']; ?></label>
+            </h5>
+            <select name="<?= $rec9['id']; ?>" id="<?= $rec9['id']; ?>">
+                <option value="" <?php if(!isset($rec10['condition_level']) || is_null($rec10['condition_level'])){ ?> selected <?php } ?> >--選択して下さい--</option>
+                <option value="0" <?php if(isset($rec10['condition_level'])){ ?> selected <?php } ?>>0</option>
+                <?php foreach ($signal_list as $v => $value) : ?>
+                        <option value="<?= $v ?>" <?php if(isset($rec10['condition_level']) && $rec10['condition_level'] == $v ) { ?> selected <?php } ?> ><?= $value ?></option>
+                <?php endforeach ?>
+            </select>
+            <br>
+            <br>
+            <?php
+        } ?>
+
+    <input type="button" value="一括(0)">
+    <br><br><br><br>
+
+    <?php }
+
     //　体調信号が赤以上の場合
     if($spirit_signal >= 4) {
     ?>

@@ -6,6 +6,7 @@
     <title>検索結果</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
     <link rel="stylesheet" href="../css/monitor.css">
+    <link rel="stylesheet" href="../css/monitor_list.css">
 </head>
 <body>
 <div class="container">
@@ -23,6 +24,7 @@
     // 件数と略称の初期値
     $count = 0;
     $abbreviation = 0;
+    $add_item = [];
 
     if(isset($post['count'])) {
         $count = $post['count'];
@@ -30,6 +32,10 @@
     if(isset($post['abbreviation'])) {
         $abbreviation = $post['abbreviation'];
     }
+    if(isset($post['add_item']) && is_array($post['add_item'])) {
+        $add_item = $post['add_item'];
+    }
+
     ?>
 
     <form method="post" action="search_result.php">
@@ -118,16 +124,32 @@
                 <label for="abbreviation">する</label>
             </div>
             <div class="col-2"></div>
+        </div>
+        <div class="row">
+            <div class="col-2">追加項目</div>
+            <div class="col-2">
+                <input type="checkbox" name="add_item[]" id="add_yellow" value="1" <?php foreach($add_item as $e) { if($e == 1) { ?> checked="checked" <?php } } ?>>
+                <label for="add_yellow">追加黄</label>
+            </div>
+            <div class="col-2">
+                <input type="checkbox" name="add_item[]" id="add_orenge" value="2" <?php foreach($add_item as $r) { if($r == 2) { ?> checked="checked" <?php } } ?>>
+                <label for="add_orenge">追加橙</label>
+            </div>
+            <div class="col-2">
+                <input type="checkbox" name="add_item[]" id="add_red" value="3" <?php foreach($add_item as $d) { if($d == 3) { ?> checked="checked" <?php } } ?>>
+                <label for="add_red">追加赤</label>
+            </div>
             <div class="col-2">
                 <input type="submit" value="変更">
             </div>
         </div>
+
     </form>
     <br><br>
 
 
-    <table border="1">
-        <!-- colorの青と黄のidを配列に入れる -->
+    <table border="1" class="table-striped">
+        <!-- colorのidを配列に入れる -->
         <?php
             $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
             $user = 'root';
@@ -144,6 +166,9 @@
 
             $blue_roop = array();
             $yellow_roop = array();
+            $add_yellow_roop = array();
+            $add_orenge_roop = array();
+            $add_red_roop = array();
 
             while(true) {
                 $rec = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -163,6 +188,19 @@
                 // 黄を判定するidを全ていれる。
                 }elseif($rec['color'] == 2){
                     $yellow_roop[] = $rec['id'];
+
+                // 追加黄を判定するidを全ていれる。
+                }elseif($rec['color'] == 6){
+                    $add_yellow_roop[] = $rec['id'];
+
+                // 追加橙を判定するidを全ていれる。
+                }elseif($rec['color'] == 7){
+                    $add_orenge_roop[] = $rec['id'];
+
+                // 追加赤を判定するidを全ていれる。
+                }elseif($rec['color'] == 8){
+                    $add_red_roop[] = $rec['id'];
+
                 }
             }
             
@@ -245,6 +283,98 @@
                     <?php }
                 } ?>
             <th>合計</th>
+            <?php foreach($add_item as $y ) {
+                if($y == "1") {
+                    // 追加黄の項目をthに書き出す
+                    $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                    $user = 'root';
+                    $password = '';
+                    $dbh = new PDO($dsn, $user, $password);
+                    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+                    $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
+                    $stmt = $dbh -> prepare($sql);
+                    $data = [];
+                    $data[] = 0;
+                    $data[] = 6;
+                    $stmt -> execute($data);
+
+                    $dbh = null;
+                    
+                    while(true) {
+                        $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if($rec==false){
+                            break;
+                        }
+                        if($abbreviation == 0) {
+                            ?> <th> <?php print $rec['item'] ?> </th>
+                        <?php }else{ 
+                            ?> <th> <?php print $rec['short_name'] ?> </th>
+                        <?php }
+                    }
+                }elseif($y == "2") {
+                    // 追加黄の項目をthに書き出す
+                    $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                    $user = 'root';
+                    $password = '';
+                    $dbh = new PDO($dsn, $user, $password);
+                    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+                    $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
+                    $stmt = $dbh -> prepare($sql);
+                    $data = [];
+                    $data[] = 0;
+                    $data[] = 7;
+                    $stmt -> execute($data);
+
+                    $dbh = null;
+                    
+                    while(true) {
+                        $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if($rec==false){
+                            break;
+                        }
+                        if($abbreviation == 0) {
+                            ?> <th> <?php print $rec['item'] ?> </th>
+                        <?php }else{ 
+                            ?> <th> <?php print $rec['short_name'] ?> </th>
+                        <?php }
+                    }
+                }elseif($y == "3") {
+                    // 追加黄の項目をthに書き出す
+                    $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                    $user = 'root';
+                    $password = '';
+                    $dbh = new PDO($dsn, $user, $password);
+                    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+                    $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
+                    $stmt = $dbh -> prepare($sql);
+                    $data = [];
+                    $data[] = 0;
+                    $data[] = 8;
+                    $stmt -> execute($data);
+
+                    $dbh = null;
+                    
+                    while(true) {
+                        $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if($rec==false){
+                            break;
+                        }
+                        if($abbreviation == 0) {
+                            ?> <th> <?php print $rec['item'] ?> </th>
+                        <?php }else{ 
+                            ?> <th> <?php print $rec['short_name'] ?> </th>
+                        <?php }
+                    }
+                }
+            }
+            ?>
+
             <th>体調</th>
             <th width="100px">出来事1</th>
             <th width="100px">出来事2</th>
@@ -780,13 +910,147 @@
                         } 
                     } ?>
                     <th> <?php print $yellow_total; ?> </th>
-                    <th> <?php print $condition_list[$rec["spirit_signal"]]; ?> </th>
-                    <th> <?php print $rec["event1"]; ?> </th>
-                    <th> <?php print $rec["event2"]; ?> </th>
-                    <th> <?php print $rec["event3"]; ?> </th>
-                    <th> <?php print $rec["notice"]; ?> </th>
-                    <?php
-            ?>
+                                    <!-- checkboxで送ったpostを確認 -->
+                <?php foreach($add_item as $l ) {
+                    if($l == "1") {
+                        // 追加黄のIDをもとに２重ループする
+                        foreach( $add_yellow_roop as $w ){
+                            $dsn8 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                            $user8 = 'root';
+                            $password8 = '';
+                            $dbh8 = new PDO($dsn8, $user8, $password8);
+                            $dbh8->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+                            $sql8 = 'SELECT condition_id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = condition_id WHERE monitoring_id = ?';
+                            $stmt8 = $dbh8 -> prepare($sql8);
+                            $data8 = [];
+                            $data8[] = $rec['id'];
+                            $stmt8 -> execute($data8);
+
+                            $dbh8 = null;
+
+                            $roop_flag = false;
+
+                            while(true) {
+                                $rec8 = $stmt8->fetch(PDO::FETCH_ASSOC);
+                                if($rec8==false){
+                                    // $value == $rec8['id']がない場合は、空白が入るようにする。
+                                    if($roop_flag == false) {
+                                        ?> <th> </th> <?php   
+                                    }
+                                    break;
+                                }
+
+                                // 必要とされていない項目は表示しない。
+                                if($rec8['display_unnecessary'] == 1){
+                                    continue;
+                                }
+
+                                // 追加黄のIDが一致するときに通る。
+                                if($w == $rec8['condition_id'] ) {
+                                    ?> <th> <?php print $rec8['condition_level'] ?> </th>
+
+                                    <!-- condition_levelsのデータベースにデータが記載されているか確認 -->
+                                    <?php $roop_flag = true;
+                                }
+                            } 
+                        }
+                    }elseif($l == "2") {
+                        // 追加橙のIDをもとに２重ループする
+                        foreach( $add_orenge_roop as $n ){
+                            $dsn9 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                            $user9 = 'root';
+                            $password9 = '';
+                            $dbh9 = new PDO($dsn9, $user9, $password9);
+                            $dbh9->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+                            $sql9 = 'SELECT condition_id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = condition_id WHERE monitoring_id = ?';
+                            $stmt9 = $dbh9 -> prepare($sql9);
+                            $data9 = [];
+                            $data9[] = $rec['id'];
+                            $stmt9 -> execute($data9);
+
+                            $dbh9 = null;
+
+                            $roop_flag = false;
+
+                            while(true) {
+                                $rec9 = $stmt9->fetch(PDO::FETCH_ASSOC);
+                                if($rec9==false){
+                                    // $value == $rec9['id']がない場合は、空白が入るようにする。
+                                    if($roop_flag == false) {
+                                        ?> <th> </th> <?php   
+                                    }
+                                    break;
+                                }
+
+                                // 必要とされていない項目は表示しない。
+                                if($rec9['display_unnecessary'] == 1){
+                                    continue;
+                                }
+
+                                // 追加橙のIDが一致するときに通る。
+                                if($n == $rec9['condition_id'] ) {
+                                    ?> <th> <?php print $rec9['condition_level'] ?> </th>
+
+                                    <!-- condition_levelsのデータベースにデータが記載されているか確認 -->
+                                    <?php $roop_flag = true;
+                                }
+                            } 
+                        }
+                    }elseif($l == "3") {
+                        // 追加橙のIDをもとに２重ループする
+                        foreach( $add_red_roop as $red ){
+                            $dsn10 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
+                            $user10 = 'root';
+                            $password10 = '';
+                            $dbh10 = new PDO($dsn10, $user10, $password10);
+                            $dbh10->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+                            $sql10 = 'SELECT condition_id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = condition_id WHERE monitoring_id = ?';
+                            $stmt10 = $dbh10 -> prepare($sql10);
+                            $data10 = [];
+                            $data10[] = $rec['id'];
+                            $stmt10 -> execute($data10);
+
+                            $dbh10 = null;
+
+                            $roop_flag = false;
+
+                            while(true) {
+                                $rec10 = $stmt10->fetch(PDO::FETCH_ASSOC);
+                                if($rec10==false){
+                                    // $value == $rec10['id']がない場合は、空白が入るようにする。
+                                    if($roop_flag == false) {
+                                        ?> <th> </th> <?php   
+                                    }
+                                    break;
+                                }
+
+                                // 必要とされていない項目は表示しない。
+                                if($rec10['display_unnecessary'] == 1){
+                                    continue;
+                                }
+
+                                // 追加赤のIDが一致するときに通る。
+                                if($red == $rec10['condition_id'] ) {
+                                    ?> <th> <?php print $rec10['condition_level'] ?> </th>
+
+                                    <!-- condition_levelsのデータベースにデータが記載されているか確認 -->
+                                    <?php $roop_flag = true;
+                                }
+                            } 
+                        }
+                    }
+                } ?>
+                <th> <?php print $condition_list[$rec["spirit_signal"]]; ?> </th>
+                <th> <?php print $rec["event1"]; ?> </th>
+                <th> <?php print $rec["event2"]; ?> </th>
+                <th> <?php print $rec["event3"]; ?> </th>
+                <th> <?php print $rec["notice"]; ?> </th>
             </tr>
             <?php } 
         } ?>

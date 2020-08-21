@@ -1,8 +1,22 @@
-table {
+/* table {
     border-collapse: collapse;
     table-layout: fixed;
 }
 
 th {
     text-align: justify;
+} */
+
+/*スクロール用*/
+/* thead.scrollHead,tbody.scrollBody{
+    display:block;
 }
+tbody.scrollBody{
+    overflow-y:scroll;
+    height:400px;
+} */
+
+/*幅調整*/
+/* td,th{
+    table-layout:fixed;
+} */

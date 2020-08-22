@@ -8,15 +8,54 @@ th {
 } */
 
 /*スクロール用*/
-/* thead.scrollHead,tbody.scrollBody{
+thead.scrollHead,tbody.scrollBody{
     display:block;
 }
 tbody.scrollBody{
     overflow-y:scroll;
+    height:350px;
+    overflow-x:scroll;
     height:400px;
-} */
+
+}
 
 /*幅調整*/
-/* td,th{
+td,th{
     table-layout:fixed;
-} */
+}
+.year{
+    width:45px;
+}
+.weekday{
+    width:15px;
+}
+.sleep{
+    width:42px;
+}
+.sleep_sound{
+    width:20px;
+}
+.nap{
+    width:36px;
+}
+.weather{
+    width:36px;
+}
+.signal{
+    width:20px;
+}
+.signal_letter{
+    width:40px;
+}
+.signal_total{
+    width:22px;
+}
+.spirit{
+    width:20px;
+}
+.event{
+    width:50px;
+}
+.notice{
+    width:130px;
+}

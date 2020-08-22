@@ -205,24 +205,24 @@
             }
             
         ?>
-
+        <thead class="scrollHead">
         <tr>
-            <th>年月日</th>
-            <th>曜日</th>
-            <th>睡眠開始時間</th>
-            <th>睡眠終了時間</th>
-            <th>睡眠合計時間</th>
+            <th class="year">年月日</th>
+            <th class="weekday">曜日</th>
+            <th class="sleep">睡眠開始時間</th>
+            <th class="sleep">睡眠終了時間</th>
+            <th class="sleep">睡眠合計時間</th>
             <?php
                 if($abbreviation == 0) { ?>
-                    <th>朝起きた時の熟睡感</th>
+                    <th class="sleep_sound">朝起きた時の熟睡感</th>
                 <?php }else{ ?>
-                    <th>熟睡感</th>
+                    <th class="sleep_sound">熟睡感</th>
                 <?php } ?>
-            <th>昼寝した？？</th>
-            <th>昼寝開始時間</th>
-            <th>昼寝終了時間</th>
-            <th>昼寝合計時間</th>
-            <th>天気</th>
+            <th class="nap">昼寝した？</th>
+            <th class="sleep">昼寝開始時間</th>
+            <th class="sleep">昼寝終了時間</th>
+            <th class="sleep">昼寝合計時間</th>
+            <th class="weather">天気</th>
             <?php
                 // 青信号の項目をthに書き出す
                 $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
@@ -247,9 +247,9 @@
                         break;
                     }
                     if($abbreviation == 0) {
-                        ?> <th> <?php print $rec['item'] ?> </th>
+                        ?> <th class="signal"> <?php print $rec['item'] ?> </th>
                     <?php }else{ 
-                        ?> <th> <?php print $rec['short_name'] ?> </th>
+                        ?> <th class="signal"> <?php print $rec['short_name'] ?> </th>
                     <?php }
                 }
 
@@ -277,12 +277,12 @@
                     }
 
                     if($abbreviation == 0) {
-                        ?> <th> <?php print $rec['item'] ?> </th>
+                        ?> <th class="signal"> <?php print $rec['item'] ?> </th>
                     <?php }else{ 
-                        ?> <th> <?php print $rec['short_name'] ?> </th>
+                        ?> <th class="signal"> <?php print $rec['short_name'] ?> </th>
                     <?php }
                 } ?>
-            <th>合計</th>
+            <th class="signal_total">合計</th>
             <?php foreach($add_item as $y ) {
                 if($y == "1") {
                     // 追加黄の項目をthに書き出す
@@ -308,9 +308,9 @@
                             break;
                         }
                         if($abbreviation == 0) {
-                            ?> <th> <?php print $rec['item'] ?> </th>
+                            ?> <th class="signal"> <?php print $rec['item'] ?> </th>
                         <?php }else{ 
-                            ?> <th> <?php print $rec['short_name'] ?> </th>
+                            ?> <th class="signal"> <?php print $rec['short_name'] ?> </th>
                         <?php }
                     }
                 }elseif($y == "2") {
@@ -337,9 +337,9 @@
                             break;
                         }
                         if($abbreviation == 0) {
-                            ?> <th> <?php print $rec['item'] ?> </th>
+                            ?> <th class="signal"> <?php print $rec['item'] ?> </th>
                         <?php }else{ 
-                            ?> <th> <?php print $rec['short_name'] ?> </th>
+                            ?> <th class="signal"> <?php print $rec['short_name'] ?> </th>
                         <?php }
                     }
                 }elseif($y == "3") {
@@ -366,21 +366,23 @@
                             break;
                         }
                         if($abbreviation == 0) {
-                            ?> <th> <?php print $rec['item'] ?> </th>
+                            ?> <th class="signal"> <?php print $rec['item'] ?> </th>
                         <?php }else{ 
-                            ?> <th> <?php print $rec['short_name'] ?> </th>
+                            ?> <th class="signal"> <?php print $rec['short_name'] ?> </th>
                         <?php }
                     }
                 }
             }
             ?>
 
-            <th>体調</th>
-            <th width="100px">出来事1</th>
-            <th width="100px">出来事2</th>
-            <th width="100px">出来事3</th>
-            <th width="300px">気づいたこと</th>
+            <th class="spirit">体調</th>
+            <th class="event">出来事1</th>
+            <th class="event">出来事2</th>
+            <th class="event">出来事3</th>
+            <th class="notice">気づいたこと</th>
         </tr>
+        </thead>
+        <tbody class="scrollBody">
         <tr>
         <?php
 
@@ -764,14 +766,14 @@
                             break;
                         }
                     }
-                    ?> <th> <?php print $rec['entries_date'] ?> </th>
-                    <th> <?php print $week[$rec['weekday']] ?> </th>
+                    ?> <td class="year"> <?php print $rec['entries_date'] ?> </td>
+                    <td class="weekday"> <?php print $week[$rec['weekday']] ?> </td>
                     <!-- 睡眠開始時間の時間だけ -->
                     <?php
                         $date = new DateTime($rec['sleep_start_time']);
                         $sleep_start_time = $date->format('H:i');
                     ?>
-                    <th> <?php print $sleep_start_time; ?> </th>
+                    <td  class="sleep"> <?php print $sleep_start_time; ?> </td>
                     <!-- 睡眠終了時間の時間だけ -->
                     <?php
                         $date2 = new DateTime($rec['sleep_end_time']);
@@ -779,38 +781,38 @@
                         $date6 = new DateTime($rec['sleep_sum']);
                         $sleep_sum = $date6->format('H:i');
                     ?>
-                    <th> <?php print $sleep_end_time; ?> </th>
-                    <th> <?php print $sleep_sum; ?> </th>
-                    <th> <?php print $sound[$rec["sound_sleep"]]; ?> </th>
-                    <th> <?php print $sound_nap[$rec["nap"]]; ?> </th>
+                    <td class="sleep"> <?php print $sleep_end_time; ?> </td>
+                    <td class="sleep"> <?php print $sleep_sum; ?> </td>
+                    <td class="sleep_sound"> <?php print $sound[$rec["sound_sleep"]]; ?> </td>
+                    <td class="nap"> <?php print $sound_nap[$rec["nap"]]; ?> </td>
                     <!-- 昼寝開始時間(0ばっかの時は記載しない) -->
                     <?php
                         if($rec['nap_start_time'] == "0000-00-00 00:00:00") {
-                            ?> <th> </th> <?php
+                            ?> <td class="sleep"> </td> <?php
                         }else{
                             $date3 = new DateTime($rec['nap_start_time']);
                             $nap_start_time = $date3->format('H:i');
                     ?>
-                    <th> <?php print $nap_start_time; ?> </th>
+                    <td class="sleep"> <?php print $nap_start_time; ?> </td>
                     <!-- 昼寝終了時間(0ばっかの時は記載しない) -->
                     <?php } 
                         if($rec['nap_end_time'] == "0000-00-00 00:00:00") {
-                            ?> <th> </th> <?php
+                            ?> <td class="sleep"> </td> <?php
                         }else{
                             $date4 = new DateTime($rec['nap_end_time']);
                             $nap_start_time = $date4->format('H:i');
                             $interval2 = date_diff($date3, $date4);
                     ?>
-                    <th> <?php print $nap_start_time; ?> </th>
+                    <td class="sleep"> <?php print $nap_start_time; ?> </td>
                         <?php }
                     $date5 = new DateTime($rec["nap_sum"]);
                     $nap_sum = $date5->format('H:i');
                     if($nap_sum == "00:00") { 
-                        ?> <th> </th> <?php
+                        ?> <td class="sleep"> </td> <?php
                     }else{ ?>
-                        <th><?php print $nap_sum; ?></th>
+                        <td class="sleep"><?php print $nap_sum; ?></td>
                     <?php } ?>
-                    <th> <?php print $weather_list[$rec["weather"]]; ?> </th>
+                    <td class="weather"> <?php print $weather_list[$rec["weather"]]; ?> </td>
                     <?php
                     // 青信号のIDをもとに２重ループする
                     foreach( $blue_roop as $value ){
@@ -836,7 +838,7 @@
                             if($rec2==false){
                                 // $value == $rec2['id']がない場合は、空白が入るようにする。
                                 if($roop_flag == false) {
-                                    ?> <th> </th> <?php   
+                                    ?> <td class="signal"> </td> <?php   
                                 }
                                 break;
                             }
@@ -849,9 +851,9 @@
                             // 青信号のIDが一致するときに通る。
                             if($value == $rec2['id'] ) {
                                 if($rec2['condition_level'] == 5){
-                                    ?> <th>-</th>
+                                    ?> <td class="signal">-</td>
                                 <?php }else{
-                                    ?> <th> <?php print $rec2['condition_level'] ?> </th>
+                                    ?> <td class="signal"> <?php print $rec2['condition_level'] ?> </td>
                                 <?php }
 
                                 // condition_levelsのデータベースにデータが記載されているか確認
@@ -887,7 +889,7 @@
                             if($rec3==false){
                                 // $value == $rec2['id']がない場合は、空白が入るようにする。
                                 if($roop_flag == false) {
-                                    ?> <th> </th> <?php   
+                                    ?> <td class="signal"> </td> <?php   
                                 }
                                 break;
                             }
@@ -899,7 +901,7 @@
 
                             // 黄信号のIDが一致するときに通る。
                             if($v == $rec3['condition_id'] ) {
-                                ?> <th> <?php print $rec3['condition_level'] ?> </th>
+                                ?> <td class="signal"> <?php print $rec3['condition_level'] ?> </td>
 
                                 <!-- condition_levelsのデータベースにデータが記載されているか確認 -->
                                 <?php $roop_flag = true;
@@ -909,7 +911,7 @@
                             }
                         } 
                     } ?>
-                    <th> <?php print $yellow_total; ?> </th>
+                    <td class="signal_total"> <?php print $yellow_total; ?> </td>
                                     <!-- checkboxで送ったpostを確認 -->
                 <?php foreach($add_item as $l ) {
                     if($l == "1") {
@@ -937,7 +939,7 @@
                                 if($rec8==false){
                                     // $value == $rec8['id']がない場合は、空白が入るようにする。
                                     if($roop_flag == false) {
-                                        ?> <th> </th> <?php   
+                                        ?> <td class="signal"> </td> <?php   
                                     }
                                     break;
                                 }
@@ -949,7 +951,7 @@
 
                                 // 追加黄のIDが一致するときに通る。
                                 if($w == $rec8['condition_id'] ) {
-                                    ?> <th> <?php print $rec8['condition_level'] ?> </th>
+                                    ?> <td class="signal"> <?php print $rec8['condition_level'] ?> </td>
 
                                     <!-- condition_levelsのデータベースにデータが記載されているか確認 -->
                                     <?php $roop_flag = true;
@@ -981,7 +983,7 @@
                                 if($rec9==false){
                                     // $value == $rec9['id']がない場合は、空白が入るようにする。
                                     if($roop_flag == false) {
-                                        ?> <th> </th> <?php   
+                                        ?> <td class="signal"> </td> <?php   
                                     }
                                     break;
                                 }
@@ -993,7 +995,7 @@
 
                                 // 追加橙のIDが一致するときに通る。
                                 if($n == $rec9['condition_id'] ) {
-                                    ?> <th> <?php print $rec9['condition_level'] ?> </th>
+                                    ?> <td class="signal"> <?php print $rec9['condition_level'] ?> </td>
 
                                     <!-- condition_levelsのデータベースにデータが記載されているか確認 -->
                                     <?php $roop_flag = true;
@@ -1025,7 +1027,7 @@
                                 if($rec10==false){
                                     // $value == $rec10['id']がない場合は、空白が入るようにする。
                                     if($roop_flag == false) {
-                                        ?> <th> </th> <?php   
+                                        ?> <td class="signal"> </td> <?php   
                                     }
                                     break;
                                 }
@@ -1037,7 +1039,7 @@
 
                                 // 追加赤のIDが一致するときに通る。
                                 if($red == $rec10['condition_id'] ) {
-                                    ?> <th> <?php print $rec10['condition_level'] ?> </th>
+                                    ?> <td class="signal"> <?php print $rec10['condition_level'] ?> </td>
 
                                     <!-- condition_levelsのデータベースにデータが記載されているか確認 -->
                                     <?php $roop_flag = true;
@@ -1046,14 +1048,15 @@
                         }
                     }
                 } ?>
-                <th> <?php print $condition_list[$rec["spirit_signal"]]; ?> </th>
-                <th> <?php print $rec["event1"]; ?> </th>
-                <th> <?php print $rec["event2"]; ?> </th>
-                <th> <?php print $rec["event3"]; ?> </th>
-                <th> <?php print $rec["notice"]; ?> </th>
+                <td class="spirit"> <?php print $condition_list[$rec["spirit_signal"]]; ?> </td>
+                <td class="event"> <?php print $rec["event1"]; ?> </td>
+                <td class="event"> <?php print $rec["event2"]; ?> </td>
+                <td class="event"> <?php print $rec["event3"]; ?> </td>
+                <td class="notice"> <?php print $rec["notice"]; ?> </td>
             </tr>
             <?php } 
         } ?>
+    </tbody>
 </table>
 </div>
 

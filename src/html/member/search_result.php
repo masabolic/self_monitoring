@@ -814,7 +814,7 @@
                     <?php } ?>
                     <td class="weather"> <?php print $weather_list[$rec["weather"]]; ?> </td>
                     <?php
-                    // 青信号のIDをもとに２重ループする
+                    // 青信号のIDをもとに２重ループする（理由：空やった場合に、tableに空白をいれないといけないから）
                     foreach( $blue_roop as $value ){
                         $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                         $user2 = 'root';
@@ -865,7 +865,7 @@
                     // 黄信号の合計の初期化
                     $yellow_total = 0;
 
-                    // 黄信号のIDをもとに２重ループする
+                    // 黄信号のIDをもとに２重ループする（理由：空やった場合に、tableに空白をいれないといけないから）
                     foreach( $yellow_roop as $v ){
                         $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
                         $user3 = 'root';

@@ -647,7 +647,7 @@
     <h5>
     <label for="notice">気づいたこと</label>
     </h5>
-    <textarea name="notice" id="notice"><?php if(isset($notice)) { print $notice; }else{ print $notice_default; } ?></textarea>
+    <textarea name="notice" id="notice" style="width:80%; height:100px;"><?php if(isset($notice)) { print $notice; }else{ print $notice_default; } ?></textarea>
     <br>
     <br>
 

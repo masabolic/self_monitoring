@@ -79,7 +79,7 @@
                     $dbh = new PDO($dsn, $user, $password);
                     $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             
-                    $sql = 'SELECT entries_date, is_deleted FROM monitoring WHERE entries_date = ?';
+                    $sql = 'SELECT entries_date, spirit_signal, is_deleted FROM monitoring WHERE entries_date = ?';
                     $data = [];
                     $data[] = $special_date;
                     $stmt = $dbh -> prepare($sql);
@@ -102,7 +102,8 @@
                             continue;
                         }
 
-                        ?> <td><a href="./edit.php?date=<?= $special_date; ?>"><?php print $i ?></a></td> <?php
+                        ?> <td <?php if($rec['spirit_signal'] == 0){ ?> style="background-color:#00FFFF;" <?php }elseif($rec['spirit_signal'] == 1){ ?> style="background-color:#00FF00;" <?php }elseif($rec['spirit_signal'] == 2){ ?> style="background-color:#FFFF00;" <?php }elseif($rec['spirit_signal'] == 3){ ?> style="background-color:#FFA500;" <?php }elseif($rec['spirit_signal'] == 4){ ?> style="background-color:#FF6347;" <?php }elseif($rec['spirit_signal'] == 5){ ?> style="background-color:#BBBBBB;" <?php } ?> >
+                        <a href="./edit.php?date=<?= $special_date; ?>"><?php print $i ?></a></td> <?php
                         $special_roop++;
                     }
                 }
@@ -125,7 +126,7 @@
                     $dbh = new PDO($dsn, $user, $password);
                     $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             
-                    $sql = 'SELECT entries_date, is_deleted FROM monitoring WHERE entries_date = ?';
+                    $sql = 'SELECT entries_date, spirit_signal, is_deleted FROM monitoring WHERE entries_date = ?';
                     $data = [];
                     $data[] = $special_date;
                     $stmt = $dbh -> prepare($sql);
@@ -148,7 +149,8 @@
                             continue;
                         }
 
-                        ?> <td><a href="./edit.php?date=<?= $special_date; ?>"><?php print $i?></a></td> <?php
+                    ?> <td <?php if($rec['spirit_signal'] == 0){ ?> style="background-color:#00FFFF;" <?php }elseif($rec['spirit_signal'] == 1){ ?> style="background-color:#00FF00;" <?php }elseif($rec['spirit_signal'] == 2){ ?> style="background-color:#FFFF00;" <?php }elseif($rec['spirit_signal'] == 3){ ?> style="background-color:#FFA500;" <?php }elseif($rec['spirit_signal'] == 4){ ?> style="background-color:#FF6347;" <?php }elseif($rec['spirit_signal'] == 5){ ?> style="background-color:#BBBBBB;" <?php } ?> >
+                        <a href="./edit.php?date=<?= $special_date; ?>"><?php print $i?></a></td> <?php
                         $special_roop++;
                     }
 

@@ -19,6 +19,7 @@
     <br><br>
     
     <?php
+    require_once('../../../common.php');
     // 体調を示す信号
     $signal_color = array( 2 => '黄', 6 => '追加黄', 7 => '追加橙', 8 => '追加赤');
     ?>
@@ -26,12 +27,7 @@
     <table border="1">
         <?php
         // 青の項目を書き出す(1項目ごとに変更ボタンをつける)
-        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user = 'root';
-        $password = '';
-        $dbh = new PDO($dsn, $user, $password);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+        $dbh = dbconnect();
 
         $sql = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE color = ?';
         $stmt = $dbh -> prepare($sql);
@@ -63,12 +59,7 @@
 
         <?php
         // 黄の項目を書き出す(1項目ごとに変更ボタンをつける)
-        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user = 'root';
-        $password = '';
-        $dbh = new PDO($dsn, $user, $password);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+        $dbh = dbconnect();
 
         $sql = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE color = ?';
         $stmt = $dbh -> prepare($sql);
@@ -104,12 +95,7 @@
         </tr>
         <?php } 
         // 追加黄の項目を書き出す(1項目ごとに変更ボタンをつける)
-        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user = 'root';
-        $password = '';
-        $dbh = new PDO($dsn, $user, $password);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+        $dbh = dbconnect();
 
         $sql = 'SELECT id, item, display_unnecessary FROM physical_condition_items WHERE color = ?';
         $stmt = $dbh -> prepare($sql);
@@ -145,12 +131,7 @@
         </tr>
         <?php }
         // 追加橙の項目を書き出す(1項目ごとに変更ボタンをつける)
-        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user = 'root';
-        $password = '';
-        $dbh = new PDO($dsn, $user, $password);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+        $dbh = dbconnect();
 
         $sql = 'SELECT id, item, display_unnecessary FROM physical_condition_items WHERE color = ?';
         $stmt = $dbh -> prepare($sql);
@@ -186,12 +167,7 @@
         </tr>
         <?php }
         // 追加赤の項目を書き出す(1項目ごとに変更ボタンをつける)
-        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user = 'root';
-        $password = '';
-        $dbh = new PDO($dsn, $user, $password);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+        $dbh = dbconnect();
 
         $sql = 'SELECT id, item, display_unnecessary FROM physical_condition_items WHERE color = ?';
         $stmt = $dbh -> prepare($sql);

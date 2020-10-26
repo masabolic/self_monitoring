@@ -15,9 +15,9 @@
     <br>
 
     <?php
+    require_once('../../../common.php');
     // サニタイジング
     if(!empty($_POST)){
-        require_once('../../../common.php');
         $post = sanitize($_POST);
     }
 
@@ -64,12 +64,8 @@
             print "を登録しました。";
 
             // 信号を新規追加する
-            $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-            $user = 'root';
-            $password = '';
-            $dbh = new PDO($dsn, $user, $password);
-            $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+            $dbh = dbconnect();
+            
             $sql = 'INSERT INTO physical_condition_items(item, short_name, color) VALUES(?,?,?)';
             $stmt = $dbh -> prepare($sql);
             $data = [];

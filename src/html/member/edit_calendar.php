@@ -37,6 +37,7 @@
         </tr>
         <tr>
                 <?php
+                require_once('../common.php');
                 $date = new DateTime('now', new \DateTimeZone('Asia/Tokyo'));
                 // 送られてた月の差分によって今月からの差を出す。
                 if($M >= 0) {
@@ -73,11 +74,7 @@
                     // 日付が二桁じゃないとentries_dateに対応しない為
                     $special_date = $yearmonth."0".$i;
 
-                    $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user = 'root';
-                    $password = '';
-                    $dbh = new PDO($dsn, $user, $password);
-                    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $dbh = dbconnect();
             
                     $sql = 'SELECT entries_date, spirit_signal, is_deleted FROM monitoring WHERE entries_date = ?';
                     $data = [];
@@ -120,11 +117,7 @@
                         $special_date = $yearmonth.$i;
                     }
 
-                    $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user = 'root';
-                    $password = '';
-                    $dbh = new PDO($dsn, $user, $password);
-                    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $dbh = dbconnect();
             
                     $sql = 'SELECT entries_date, spirit_signal, is_deleted FROM monitoring WHERE entries_date = ?';
                     $data = [];

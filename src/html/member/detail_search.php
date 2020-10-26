@@ -19,6 +19,7 @@
     <br><br>
 
     <?php
+        require_once('../common.php');
         $week = array("日", "月", "火", "水", "木", "金", "土");
         $sound = array("", "〇", "✕", "△");
         $weather_list = array(
@@ -120,21 +121,16 @@
 
     <!-- 青信号の項目を表示する -->
     <?php
-        $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user3 = 'root';
-        $password3 = '';
-        $dbh3 = new PDO($dsn3, $user3, $password3);
-        $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+        $dbh = dbconnect();
 
         $sql3 = 'SELECT id, item FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
-        $stmt3 = $dbh3 -> prepare($sql3);
+        $stmt3 = $dbh -> prepare($sql3);
         $data3 = [];
         $data3[] = 0;
         $data3[] = 0;
         $stmt3 -> execute($data3);
 
-        $dbh3 = null;
+        $dbh = null;
 
         
         while(true) {
@@ -192,12 +188,7 @@
     <br>
     <!-- 黄信号の項目を表示する -->
     <?php 
-        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user = 'root';
-        $password = '';
-        $dbh = new PDO($dsn, $user, $password);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+        $dbh = dbconnect();
 
         $sql = 'SELECT id, item FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
         $stmt = $dbh -> prepare($sql);

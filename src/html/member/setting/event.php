@@ -14,8 +14,8 @@
     </div>
     <br>
     <?php 
+    require_once('../../common.php');
     if(!empty($_POST)){
-        require_once('../../common.php');
         $post = sanitize($_POST);
     }
 
@@ -28,30 +28,22 @@
                 // 曜日の英語名の後に、1~3の番号を付けてpostで送られてくるのを受け取る。
                 $week = $y . $i;
 
-                $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user2 = 'root';
-                $password2 = '';
-                $dbh2 = new PDO($dsn2, $user2, $password2);
-                $dbh2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $dbh = dbconnect();
     
                 $sql2 = "SELECT id FROM event WHERE weekday = ? AND number = ?";
                 $data2 = [];
                 $data2[] = $w;
                 $data2[] = $i;
-                $stmt2 = $dbh2 -> prepare($sql2);
+                $stmt2 = $dbh -> prepare($sql2);
                 $stmt2 -> execute($data2);
     
-                $dbh2 = null;
+                $dbh = null;
     
                 $rec2 = $stmt2->fetch(PDO::FETCH_ASSOC);
     
                 // 同じweekdayと番号のidがあれば、既存に変わりデータベースに書き込む。
                 if(!empty($rec2['id']) && is_numeric($rec2['id'])) {
-                    $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user = 'root';
-                    $password = '';
-                    $dbh = new PDO($dsn, $user, $password);
-                    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $dbh = dbconnect();
     
                     $sql = 'UPDATE event SET weekday_item=? WHERE weekday = ? AND number = ?';
                     $stmt = $dbh -> prepare($sql);
@@ -67,14 +59,10 @@
                 // 同じweekdayと番号のidが無かったら、新規でデータベースに書き込む。
                 } else {
                     if(!empty($post[$week])) {
-                        $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                        $user3 = 'root';
-                        $password3 = '';
-                        $dbh3 = new PDO($dsn3, $user3, $password3);
-                        $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                        $dbh = dbconnect();
 
                         $sql3 = 'INSERT INTO event(weekday_item, weekday, number) VALUES(?,?,?)';
-                        $stmt3 = $dbh3 -> prepare($sql3);
+                        $stmt3 = $dbh -> prepare($sql3);
                         $data3 = [];
                         $data3[] = $post[$week];
                         $data3[] = $w;
@@ -82,7 +70,7 @@
 
                         $stmt3 -> execute($data3);
 
-                        $dbh3 = null;
+                        $dbh = null;
                     }
                 }
             }
@@ -101,17 +89,13 @@
     // 初期値を入れる為、データベースを呼び出す。
     $weekday = array("0" => "日", "1" => "月", "2" => "火", "3" => "水", "4" => "木", "5" => "金", "6" => "土");
     
-    $dsn4 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-    $user4 = 'root';
-    $password4 = '';
-    $dbh4 = new PDO($dsn4, $user4, $password4);
-    $dbh4->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $dbh = dbconnect();
 
     $sql4 = "SELECT weekday, weekday_item, number FROM event WHERE 1";
-    $stmt4 = $dbh4 -> prepare($sql4);
+    $stmt4 = $dbh -> prepare($sql4);
     $stmt4 -> execute();
 
-    $dbh4 = null;
+    $dbh = null;
 
     while(true) {
         $rec4 = $stmt4->fetch(PDO::FETCH_ASSOC);

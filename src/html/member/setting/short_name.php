@@ -27,9 +27,11 @@
         $dbh2 = new PDO($dsn2, $user2, $password2);
         $dbh2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        $sql2 = "SELECT id, short_name FROM physical_condition_items WHERE 1";
+        $sql2 = "SELECT id, short_name FROM physical_condition_items WHERE display_unnecessary = ?";
         $stmt2 = $dbh2 -> prepare($sql2);
-        $stmt2 -> execute();
+        $data2 = [];
+        $data2[] = 0;
+        $stmt2 -> execute($data2);
 
         $dbh2 = null;
         // 文字数制限をオバーしている個数をカウントするための初期値
@@ -95,9 +97,10 @@
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-            $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE color = ?';
+            $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE color = ? AND display_unnecessary = ?';
             $stmt = $dbh -> prepare($sql);
             $data = [];
+            $data[] = 0;
             $data[] = 0;
             $stmt -> execute($data);
 
@@ -107,9 +110,6 @@
                 $rec = $stmt->fetch(PDO::FETCH_ASSOC);
                 if($rec==false){
                     break;
-                }
-                if($rec['display_unnecessary'] == 1){
-                    continue;
                 }
 
                 $item_id = 'signal' . $rec['id'];
@@ -132,10 +132,11 @@
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-            $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE color = ?';
+            $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE color = ? AND display_unnecessary = ?';
             $stmt = $dbh -> prepare($sql);
             $data = [];
             $data[] = 2;
+            $data[] = 0;
             $stmt -> execute($data);
 
             $dbh = null;
@@ -144,9 +145,6 @@
                 $rec = $stmt->fetch(PDO::FETCH_ASSOC);
                 if($rec==false){
                     break;
-                }
-                if($rec['display_unnecessary'] == 1){
-                    continue;
                 }
 
                 $item_id = 'signal' . $rec['id'];
@@ -169,10 +167,11 @@
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-            $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE color =? ';
+            $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE color =?  AND display_unnecessary = ?';
             $stmt = $dbh -> prepare($sql);
             $data = [];
             $data[] = 6;
+            $data[] = 0;
             $stmt -> execute($data);
 
 
@@ -183,10 +182,7 @@
                 if($rec==false){
                     break;
                 }
-                if($rec['display_unnecessary'] == 1){
-                    continue;
-                }
- 
+                
                 $item_id = 'signal' . $rec['id'];
                 ?>
                 <input type="hidden" name="<?= $rec['id'] ?>" value="<?= $rec['id'] ?>" >
@@ -207,10 +203,11 @@
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-            $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE color = ? ';
+            $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE color = ?  AND display_unnecessary = ?';
             $stmt = $dbh -> prepare($sql);
             $data = [];
             $data[] = 7;
+            $data[] = 0;
             $stmt -> execute($data);
 
             $dbh = null;
@@ -219,9 +216,6 @@
                 $rec = $stmt->fetch(PDO::FETCH_ASSOC);
                 if($rec==false){
                     break;
-                }
-                if($rec['display_unnecessary'] == 1){
-                    continue;
                 }
 
                 $item_id = 'signal' . $rec['id'];
@@ -244,10 +238,11 @@
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
-            $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE color = ?';
+            $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE color = ?  AND display_unnecessary = ?';
             $stmt = $dbh -> prepare($sql);
             $data = [];
             $data[] = 8;
+            $data[] = 0;
             $stmt -> execute($data);
 
 
@@ -257,9 +252,6 @@
                 $rec = $stmt->fetch(PDO::FETCH_ASSOC);
                 if($rec==false){
                     break;
-                }
-                if($rec['display_unnecessary'] == 1){
-                    continue;
                 }
                 $item_id = 'signal' . $rec['id'];
                 ?>

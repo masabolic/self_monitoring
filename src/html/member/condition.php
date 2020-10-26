@@ -13,8 +13,8 @@
         <h1>体調・精神信号、行動指針、(追加項目)</h1>
     </div>
     <?php
-    if(!empty($_POST)){
     require_once('../common.php');
+    if(!empty($_POST)){
     $post = sanitize($_POST);
     }
 
@@ -26,19 +26,15 @@
     if(isset($post)) {
 
         // 必要不要と色をループを回して取り出す。
-        $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user3 = 'root';
-        $password3 = '';
-        $dbh3 = new PDO($dsn3, $user3, $password3);
-        $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $dbh = dbconnect();
 
         $sql3 = 'SELECT id, display_unnecessary FROM physical_condition_items WHERE color >= ?';
         $data3 = [];
         $data3[] = 6;
-        $stmt3 = $dbh3 -> prepare($sql3);
+        $stmt3 = $dbh -> prepare($sql3);
         $stmt3 -> execute($data3);
 
-        $dbh3 = null;
+        $dbh = null;
 
         while(true) {
             $rec3 = $stmt3->fetch(PDO::FETCH_ASSOC);
@@ -58,49 +54,37 @@
             if(is_numeric($condition_level)) {
 
                 // 追加する信号に元々記載がないか確認するためにidをとる。
-                $dsn5 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user5 = 'root';
-                $password5 = '';
-                $dbh5 = new PDO($dsn5, $user5, $password5);
-                $dbh5->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $dbh = dbconnect();
     
                 $sql5 = "SELECT id FROM condition_levels WHERE monitoring_id = ? AND condition_id = ?";
                 $data5 = [];
                 $data5[] = $monitoring_id;
                 $data5[] = $condition_id;
-                $stmt5 = $dbh5 -> prepare($sql5);
+                $stmt5 = $dbh -> prepare($sql5);
                 $stmt5 -> execute($data5);
 
-                $dbh5 = null;
+                $dbh = null;
 
                 $rec5 = $stmt5->fetch(PDO::FETCH_ASSOC);
 
                 if(is_numeric($rec5['id'])) {
                     // 体調レベルのSQLをアップデートする。
-                    $dsn6 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user6 = 'root';
-                    $password6 = '';
-                    $dbh6 = new PDO($dsn6, $user6, $password6);
-                    $dbh6->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $dbh = dbconnect();
 
                     $sql6 = 'UPDATE condition_levels SET condition_level=? WHERE id = ?';
-                    $stmt6 = $dbh6 -> prepare($sql6);
+                    $stmt6 = $dbh -> prepare($sql6);
                     $data6 = [];
                     $data6[] = $condition_level;
                     $data6[] = $rec5['id'];
                     $stmt6 -> execute($data6);
 
-                    $dbh6 = null;
+                    $dbh = null;
                 } else {
                     // 体調レベルのSQLを記入する。
-                    $dsn4 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user4 = 'root';
-                    $password4 = '';
-                    $dbh4 = new PDO($dsn4, $user4, $password4);
-                    $dbh4->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $dbh = dbconnect();
 
                     $sql4 = 'INSERT INTO condition_levels(monitoring_id, condition_id, condition_level) VALUES(?,?,?)';
-                    $stmt4 = $dbh4 -> prepare($sql4);
+                    $stmt4 = $dbh -> prepare($sql4);
                     $data4 = [];
                     $data4[] = $monitoring_id;
                     $data4[] = $condition_id;
@@ -108,7 +92,7 @@
 
                     $stmt4 -> execute($data4);
 
-                    $dbh4 = null;
+                    $dbh = null;
                 }
             }
         }
@@ -136,19 +120,15 @@
 
     <!-- 体調信号に合わせた行動指針を呼び出して、表示 -->
     <?php
-    $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-    $user2 = 'root';
-    $password2 = '';
-    $dbh2 = new PDO($dsn2, $user2, $password2);
-    $dbh2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $dbh = dbconnect();
 
     $sql2 = "SELECT activity, do_not_need, color FROM activity WHERE color = ?";
     $data2 = [];
     $data2[] = $spirit_signal;
-    $stmt2 = $dbh2 -> prepare($sql2);
+    $stmt2 = $dbh -> prepare($sql2);
     $stmt2 -> execute($data2);
 
-    $dbh2 = null;
+    $dbh = null;
     $rec2 = $stmt2->fetch(PDO::FETCH_ASSOC);
 
     if(isset($rec2["color"]) && $rec2["do_not_need"] == 0 && $rec2["color"] >= 2) { ?>
@@ -199,11 +179,7 @@
         );
 
         // 追加黄項目だけを取り出す
-        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user = 'root';
-        $password = '';
-        $dbh = new PDO($dsn, $user, $password);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $dbh = dbconnect();
 
 
         $sql = 'SELECT id, item, display_unnecessary FROM physical_condition_items WHERE color = ?';
@@ -225,21 +201,16 @@
             }
             
             // 追加黄項目の２つのidを入れて、元々入ってた場合の初期値を呼び出す。
-            $dsn7 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-            $user7 = 'root';
-            $password7 = '';
-            $dbh7 = new PDO($dsn7, $user7, $password7);
-            $dbh7->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+            $dbh = dbconnect();
 
             $sql7 = 'SELECT id, condition_level FROM condition_levels WHERE monitoring_id = ? AND condition_id = ?';
             $data7 = [];
             $data7[] = $monitoring_id;
             $data7[] = $rec['id'];
-            $stmt7 = $dbh7 -> prepare($sql7);
+            $stmt7 = $dbh -> prepare($sql7);
             $stmt7 -> execute($data7);
 
-            $dbh7 = null;
+            $dbh = null;
             $rec7 = $stmt7->fetch(PDO::FETCH_ASSOC);
             ?>
             <h5>
@@ -272,20 +243,15 @@
 
         <?php
         // 追加黄項目だけを取り出す
-        $dsn9 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user9 = 'root';
-        $password9 = '';
-        $dbh9 = new PDO($dsn9, $user9, $password9);
-        $dbh9->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+        $dbh = dbconnect();
 
         $sql9 = 'SELECT id, item, display_unnecessary FROM physical_condition_items WHERE color = ?';
-        $stmt9 = $dbh9 -> prepare($sql9);
+        $stmt9 = $dbh -> prepare($sql9);
         $data9 = [];
         $data9[] = 7;
         $stmt9 -> execute($data9);
 
-        $dbh9 = null;
+        $dbh = null;
 
         while(true) {
             $rec9 = $stmt9->fetch(PDO::FETCH_ASSOC);
@@ -298,21 +264,16 @@
             }
             
             // 追加黄項目の２つのidを入れて、元々入ってた場合の初期値を呼び出す。
-            $dsn10 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-            $user10 = 'root';
-            $password10 = '';
-            $dbh10 = new PDO($dsn10, $user10, $password10);
-            $dbh10->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+            $dbh = dbconnect();
 
             $sql10 = 'SELECT id, condition_level FROM condition_levels WHERE monitoring_id = ? AND condition_id = ?';
             $data10 = [];
             $data10[] = $monitoring_id;
             $data10[] = $rec9['id'];
-            $stmt10 = $dbh10 -> prepare($sql10);
+            $stmt10 = $dbh -> prepare($sql10);
             $stmt10 -> execute($data10);
 
-            $dbh10 = null;
+            $dbh = null;
             $rec10 = $stmt10->fetch(PDO::FETCH_ASSOC);
             ?>
             <h5>
@@ -345,12 +306,7 @@
         <br>
         <!-- 追加赤だけを呼び出す -->
         <?php
-        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user = 'root';
-        $password = '';
-        $dbh = new PDO($dsn, $user, $password);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+        $dbh = dbconnect();
 
         $sql = 'SELECT id, item, display_unnecessary FROM physical_condition_items WHERE color = ?';
         $stmt = $dbh -> prepare($sql);
@@ -371,21 +327,16 @@
             }
 
             // 追加赤の初期値がある場合に備えて、呼び出す。
-            $dsn8 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-            $user8 = 'root';
-            $password8 = '';
-            $dbh8 = new PDO($dsn8, $user8, $password8);
-            $dbh8->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+            $dbh = dbconnect();
 
             $sql8 = 'SELECT id, condition_level FROM condition_levels WHERE monitoring_id = ? AND condition_id = ?';
             $data8 = [];
             $data8[] = $monitoring_id;
             $data8[] = $rec2['id'];
-            $stmt8 = $dbh8 -> prepare($sql8);
+            $stmt8 = $dbh -> prepare($sql8);
             $stmt8 -> execute($data8);
 
-            $dbh8 = null;
+            $dbh = null;
             $rec8 = $stmt8->fetch(PDO::FETCH_ASSOC);
 
             ?>

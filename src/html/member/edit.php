@@ -19,9 +19,10 @@
 
     <?php
     session_start();
+    require_once('../common.php');
+    $get = sanitize($_GET);
     // サニタイジング
     if(!empty($_POST)){
-        require_once('../common.php');
         $post = sanitize($_POST);
     }
 
@@ -91,11 +92,7 @@
         // SQLに登録    
         if($ok_flag == true) {
             // monitoringをアップデート
-            $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-            $user = 'root';
-            $password = '';
-            $dbh = new PDO($dsn, $user, $password);
-            $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $dbh = dbconnect();
 
             $sql = 'UPDATE monitoring SET weekday=?, sleep_start_time=?, sleep_end_time=?, sleep_sum=?, sound_sleep=?, nap=?, nap_start_time=?, nap_end_time=?, nap_sum=?, weather=?, event1=?, event2=?, event3=?, notice=? WHERE id = ? ';
             $stmt = $dbh -> prepare($sql);
@@ -126,21 +123,17 @@
             $before_week = $date -> format("Y-m-d");
 
             //一週間分の体調信号を取得し、橙以上の体調を判定
-            $dsn9 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-            $user9 = 'root';
-            $password9 = '';
-            $dbh9 = new PDO($dsn9, $user9, $password9);
-            $dbh9->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $dbh = dbconnect();
 
             $sql9 = "SELECT spirit_signal FROM monitoring WHERE entries_date >= ? AND entries_date <= ? AND is_deleted = ?";
             $data9 = [];
             $data9[] = $before_week;
             $data9[] = $entries_date;
             $data9[] = 0;
-            $stmt9 = $dbh9 -> prepare($sql9);
+            $stmt9 = $dbh -> prepare($sql9);
             $stmt9 -> execute($data9);
 
-            $dbh9 = null;
+            $dbh = null;
             while(true) {
                 $rec9 = $stmt9->fetch(PDO::FETCH_ASSOC);
                 if($rec9==false){
@@ -163,34 +156,26 @@
 
             
 
-            $dsn5 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-            $user5 = 'root';
-            $password5 = '';
-            $dbh5 = new PDO($dsn5, $user5, $password5);
-            $dbh5->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    
+            $dbh = dbconnect();
+
             $sql5 = 'SELECT id, display_unnecessary, color FROM physical_condition_items WHERE color = ? OR color = ?';
             $data = [];
             $data[] = 0;
             $data[] = 2;
-            $stmt5 = $dbh5 -> prepare($sql5);
+            $stmt5 = $dbh -> prepare($sql5);
             $stmt5 -> execute($data);
 
-            $dbh5 = null;
+            $dbh = null;
 
             while(true) {
                 $rec5 = $stmt5->fetch(PDO::FETCH_ASSOC);
 
                 //　記入後、体調信号と行動指針の度合を決める。
                 if($rec5==false){
-                    $dsn7 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user7 = 'root';
-                    $password7 = '';
-                    $dbh7 = new PDO($dsn7, $user7, $password7);
-                    $dbh7->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $dbh = dbconnect();
 
                     $sql7 = 'UPDATE monitoring SET spirit_signal=? WHERE id = ?';
-                    $stmt7 = $dbh7 -> prepare($sql7);
+                    $stmt7 = $dbh -> prepare($sql7);
                     $data7 = [];
                     // その日が青や緑だった場合、前の日は関係なくその体調信号になる
                     if($spirit_signal_yellow == 0) {
@@ -223,7 +208,7 @@
 
                     $stmt7 -> execute($data7);
 
-                    $dbh7 = null;
+                    $dbh = null;
                     break;
                 }
 
@@ -245,20 +230,16 @@
                         }
                     }
                     // monitoring記入後にidを取り出す。
-                    $dsn8 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user8 = 'root';
-                    $password8 = '';
-                    $dbh8 = new PDO($dsn8, $user8, $password8);
-                    $dbh8->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        
+                    $dbh = dbconnect();
+
                     $sql8 = "SELECT id FROM condition_levels WHERE monitoring_id = ? AND condition_id = ?";
                     $data8 = [];
                     $data8[] = $monitoring_id;
                     $data8[] = $condition_id;
-                    $stmt8 = $dbh8 -> prepare($sql8);
+                    $stmt8 = $dbh -> prepare($sql8);
                     $stmt8 -> execute($data8);
 
-                    $dbh8 = null;
+                    $dbh = null;
 
                     $rec8 = $stmt8->fetch(PDO::FETCH_ASSOC);
                     // condition_levelsのidを"id"につけてpostで送った。あれば受け取る。
@@ -267,32 +248,24 @@
                     
                     if(is_numeric($level_id)) {
                     // 体調レベルのSQLをアップデートする。
-                    $dsn6 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user6 = 'root';
-                    $password6 = '';
-                    $dbh6 = new PDO($dsn6, $user6, $password6);
-                    $dbh6->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $dbh = dbconnect();
 
                     $sql6 = 'UPDATE condition_levels SET condition_level=? WHERE id = ?';
-                    $stmt6 = $dbh6 -> prepare($sql6);
+                    $stmt6 = $dbh -> prepare($sql6);
                     $data6 = [];
                     $data6[] = $condition_level;
                     $data6[] = $level_id;
 
                     $stmt6 -> execute($data6);
 
-                    $dbh6 = null;
+                    $dbh = null;
                     } else {
                         // condition_levelsに登録されていなくて、新規に登録する場合
                         if(isset($condition_level)) {
-                            $dsn9 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                            $user9 = 'root';
-                            $password9 = '';
-                            $dbh9 = new PDO($dsn9, $user9, $password9);
-                            $dbh9->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                            $dbh = dbconnect();
 
                             $sql9 = 'INSERT INTO condition_levels(monitoring_id, condition_id, condition_level) VALUES(?,?,?)';
-                            $stmt9 = $dbh9 -> prepare($sql9);
+                            $stmt9 = $dbh -> prepare($sql9);
                             $data9 = [];
                             $data9[] = $monitoring_id;
                             $data9[] = $condition_id;
@@ -300,7 +273,7 @@
 
                             $stmt9 -> execute($data9);
 
-                            $dbh9 = null;
+                            $dbh = null;
                         }
                     }
                 }
@@ -325,26 +298,22 @@
     if(isset($post)) {
         print $entries_date;
     }else{
-        print $_GET["date"];
-        $_SESSION['date'] = $_GET["date"];
+        print $get["date"];
+        $_SESSION['date'] = $get["date"];
     } ?></h4>
     <br>
     
     <?php
-    $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-    $user2 = 'root';
-    $password2 = '';
-    $dbh2 = new PDO($dsn2, $user2, $password2);
-    $dbh2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $dbh = dbconnect();
 
     $sql2 = "SELECT id, sleep_start_time, sleep_end_time, sound_sleep, nap, nap_start_time, nap_end_time, weather, event1, event2, event3, notice FROM monitoring WHERE entries_date = ? AND is_deleted = ?";
     $data2 = [];
     $data2[] = $_SESSION['date'];
     $data2[] = 0;
-    $stmt2 = $dbh2 -> prepare($sql2);
+    $stmt2 = $dbh -> prepare($sql2);
     $stmt2 -> execute($data2);
 
-    $dbh2 = null;
+    $dbh = null;
 
     $rec2 = $stmt2->fetch(PDO::FETCH_ASSOC);
     $monitoring_id = $rec2['id'];
@@ -471,12 +440,7 @@
     <p>ー:やってない(判定できない)</p>
 
     <?php
-        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user = 'root';
-        $password = '';
-        $dbh = new PDO($dsn, $user, $password);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+        $dbh = dbconnect();                        
 
         $sql = 'SELECT id, item, display_unnecessary FROM physical_condition_items WHERE color = ?';
         $stmt = $dbh -> prepare($sql);
@@ -496,21 +460,16 @@
             }
 
             // condition_levelsにすでに記載してある体調レベルを呼び出す。初期値に使う。
-            $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-            $user3 = 'root';
-            $password3 = '';
-            $dbh3 = new PDO($dsn3, $user3, $password3);
-            $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+            $dbh = dbconnect();
 
             $sql3 = 'SELECT id, condition_level FROM condition_levels WHERE monitoring_id = ? AND condition_id = ?';
             $data3 = [];
             $data3[] = $monitoring_id;
             $data3[] = $rec['id'];
-            $stmt3 = $dbh3 -> prepare($sql3);
+            $stmt3 = $dbh -> prepare($sql3);
             $stmt3 -> execute($data3);
 
-            $dbh3 = null;
+            $dbh = null;
             $rec3 = $stmt3->fetch(PDO::FETCH_ASSOC);
 
             $blue_id = "";
@@ -553,12 +512,7 @@
 
     <?php
         // condition_levelsにすでに記載してある体調レベルを呼び出す。初期値に使う。
-        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user = 'root';
-        $password = '';
-        $dbh = new PDO($dsn, $user, $password);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+        $dbh = dbconnect();
 
         $sql = 'SELECT id, item, display_unnecessary FROM physical_condition_items WHERE color = ?';
         $stmt = $dbh -> prepare($sql);
@@ -577,21 +531,16 @@
                 continue;
             }
 
-            $dsn4 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-            $user4 = 'root';
-            $password4 = '';
-            $dbh4 = new PDO($dsn4, $user4, $password4);
-            $dbh4->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+            $dbh = dbconnect();
 
             $sql4 = 'SELECT id, condition_level FROM condition_levels WHERE monitoring_id = ? AND condition_id = ?';
             $data4 = [];
             $data4[] = $monitoring_id;
             $data4[] = $rec['id'];
-            $stmt4 = $dbh4 -> prepare($sql4);
+            $stmt4 = $dbh -> prepare($sql4);
             $stmt4 -> execute($data4);
 
-            $dbh4 = null;
+            $dbh = null;
             $rec4 = $stmt4->fetch(PDO::FETCH_ASSOC);
         
             // idをつけて、postで送る。condition_levelsに存在しているかを後で確認するため。

@@ -17,9 +17,9 @@
     <br><br>
 
     <?php
+    require_once('../common.php');
     // サニタイジング
     if(!empty($_POST)){
-    require_once('../common.php');
     $post = sanitize($_POST);
     }
 
@@ -65,19 +65,15 @@
         // SQLに登録してよいか判断する為のフラグ
         $ok_flag = true;
 
-        $dsn8 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user8 = 'root';
-        $password8 = '';
-        $dbh8 = new PDO($dsn8, $user8, $password8);
-        $dbh8->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $dbh = dbconnect();
 
         $sql8 = "SELECT entries_date, is_deleted FROM monitoring WHERE entries_date = ?";
         $data8 = [];
         $data8[] = $registration_date;
-        $stmt8 = $dbh8 -> prepare($sql8);
+        $stmt8 = $dbh -> prepare($sql8);
         $stmt8 -> execute($data8);
 
-        $dbh8 = null;
+        $dbh = null;
         
         // エラー
         while(true) {
@@ -116,11 +112,7 @@
         // SQLに登録    
         if($ok_flag == true) {
             // monitoringにその日初めての記入
-            $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-            $user = 'root';
-            $password = '';
-            $dbh = new PDO($dsn, $user, $password);
-            $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $dbh = dbconnect();
 
             $sql = 'INSERT INTO monitoring(user_id, entries_date, weekday, sleep_start_time, sleep_end_time, sleep_sum, sound_sleep, nap, nap_start_time, nap_end_time, nap_sum, weather, event1, event2, event3, notice) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
             $stmt = $dbh -> prepare($sql);
@@ -146,20 +138,16 @@
             $dbh = null;
                 
                 // monitoring記入後にidを取り出す。
-                $dsn6 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user6 = 'root';
-                $password6 = '';
-                $dbh6 = new PDO($dsn6, $user6, $password6);
-                $dbh6->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $dbh = dbconnect();
     
                 $sql6 = "SELECT id FROM monitoring WHERE entries_date = ? AND is_deleted = ?";
                 $data6 = [];
                 $data6[] = $registration_date;
                 $data6[] = 0;
-                $stmt6 = $dbh6 -> prepare($sql6);
+                $stmt6 = $dbh -> prepare($sql6);
                 $stmt6 -> execute($data6);
 
-                $dbh6 = null;
+                $dbh = null;
 
                 $rec6 = $stmt6->fetch(PDO::FETCH_ASSOC);
                 $monitoring_id = $rec6['id'];
@@ -170,21 +158,17 @@
                 $before_week = $date -> format("Y-m-d");
 
                 //一週間分の体調信号を取得し、橙以上の体調を判定
-                $dsn9 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user9 = 'root';
-                $password9 = '';
-                $dbh9 = new PDO($dsn9, $user9, $password9);
-                $dbh9->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $dbh = dbconnect();
     
                 $sql9 = "SELECT spirit_signal FROM monitoring WHERE entries_date >= ? AND entries_date <= ? AND is_deleted = ?";
                 $data9 = [];
                 $data9[] = $before_week;
                 $data9[] = $registration_date;
                 $data9[] = 0;
-                $stmt9 = $dbh9 -> prepare($sql9);
+                $stmt9 = $dbh -> prepare($sql9);
                 $stmt9 -> execute($data9);
 
-                $dbh9 = null;
+                $dbh = null;
                 while(true) {
                     $rec9 = $stmt9->fetch(PDO::FETCH_ASSOC);
                     if($rec9==false){
@@ -206,31 +190,23 @@
                 }
 
                 // 必要不要と色をループを回して取り出す。
-                $dsn5 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user5 = 'root';
-                $password5 = '';
-                $dbh5 = new PDO($dsn5, $user5, $password5);
-                $dbh5->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $dbh = dbconnect();
         
                 $sql5 = 'SELECT id, display_unnecessary, color FROM physical_condition_items WHERE 1';
-                $stmt5 = $dbh5 -> prepare($sql5);
+                $stmt5 = $dbh -> prepare($sql5);
                 $stmt5 -> execute();
 
-                $dbh5 = null;
+                $dbh = null;
 
                 while(true) {
                     $rec5 = $stmt5->fetch(PDO::FETCH_ASSOC);
 
                     //　記入後、体調信号と行動指針の度合を決める。
                     if($rec5==false){
-                        $dsn7 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                        $user7 = 'root';
-                        $password7 = '';
-                        $dbh7 = new PDO($dsn7, $user7, $password7);
-                        $dbh7->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                        $dbh = dbconnect();
 
                         $sql7 = 'UPDATE monitoring SET spirit_signal=? WHERE id = ?';
-                        $stmt7 = $dbh7 -> prepare($sql7);
+                        $stmt7 = $dbh -> prepare($sql7);
                         $data7 = [];
 
                         // その日が青や緑だった場合、前の日は関係なくその体調信号になる
@@ -264,7 +240,7 @@
 
                         $stmt7 -> execute($data7);
 
-                        $dbh7 = null;
+                        $dbh = null;
                         break;
                     }
 
@@ -287,14 +263,9 @@
                         }
                             
                         // 体調レベルのSQLを記入する。
-                        $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                        $user2 = 'root';
-                        $password2 = '';
-                        $dbh2 = new PDO($dsn2, $user2, $password2);
-                        $dbh2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+                        $dbh = dbconnect();
                         $sql2 = 'INSERT INTO condition_levels(monitoring_id, condition_id, condition_level) VALUES(?,?,?)';
-                        $stmt2 = $dbh2 -> prepare($sql2);
+                        $stmt2 = $dbh -> prepare($sql2);
                         $data2 = [];
                         $data2[] = $monitoring_id;
                         $data2[] = $condition_id;
@@ -302,7 +273,7 @@
 
                         $stmt2 -> execute($data2);
 
-                        $dbh2 = null;
+                        $dbh = null;
                     }
                 }
             // conditionに繋げる為にSESSIONに入れる
@@ -429,12 +400,7 @@
 
     <!-- 青信号のみを回す -->
     <?php
-        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user = 'root';
-        $password = '';
-        $dbh = new PDO($dsn, $user, $password);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+        $dbh = dbconnect();
 
         $sql3 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE color = ?';
         $stmt3 = $dbh -> prepare($sql3);
@@ -486,12 +452,7 @@
         <br>
         
         <?php 
-            $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-            $user = 'root';
-            $password = '';
-            $dbh = new PDO($dsn, $user, $password);
-            $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    
+            $dbh = dbconnect();
     
             $sql4 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE color = ?';
             $stmt4 = $dbh -> prepare($sql4);
@@ -545,13 +506,13 @@
     <h5>出来事</h5>
     <div class="row">
         <div class="col-3">
-            <input type="text" name="event1" <?php if(isset($event1)) { ?> value=<?= $event1 ?> <?php } ?> >
+            <input type="text" name="event1" <?php if(isset($event1)) { ?> value="<?= $event1 ?>" <?php } ?> >
         </div>
         <div class="col-3">
-            <input type="text" name="event2" <?php if(isset($event2)) { ?> value=<?= $event2 ?> <?php } ?> >
+            <input type="text" name="event2" <?php if(isset($event2)) { ?> value="<?= $event2 ?>" <?php } ?> >
         </div>
         <div class="col-3">
-            <input type="text" name="event3" <?php if(isset($event3)) { ?> value=<?= $event3 ?> <?php } ?> >
+            <input type="text" name="event3" <?php if(isset($event3)) { ?> value="<?= $event3 ?>" <?php } ?> >
         </div>
     </div>
     <br>

@@ -14,9 +14,10 @@
     </div>
     <br>
     <?php
+    require_once('../../common.php');
     // サニタイジング
     if(!empty($_POST)){
-        require_once('../../common.php');
+        
         $post = sanitize($_POST);
     }
 
@@ -34,29 +35,21 @@
         $act = array("2" => $yellow_act, "3" => $orenge_act, "4" => $red_act, "5" => $black_act);
 
         for($i=2; $i<=5; $i++){
-            $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-            $user2 = 'root';
-            $password2 = '';
-            $dbh2 = new PDO($dsn2, $user2, $password2);
-            $dbh2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $dbh = dbconnect();
 
             $sql2 = "SELECT id FROM activity WHERE color = ?";
             $data2 = [];
             $data2[] = $i;
-            $stmt2 = $dbh2 -> prepare($sql2);
+            $stmt2 = $dbh -> prepare($sql2);
             $stmt2 -> execute($data2);
 
-            $dbh2 = null;
+            $dbh = null;
 
             $rec2 = $stmt2->fetch(PDO::FETCH_ASSOC);
 
             // 同じcolorのidがあれば、既存に変わりデータベースに書き込む。
             if(!empty($rec2['id']) && is_numeric($rec2['id'])) {
-                $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user = 'root';
-                $password = '';
-                $dbh = new PDO($dsn, $user, $password);
-                $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $dbh = dbconnect();
 
                 $sql = 'UPDATE activity SET activity=?, do_not_need=? WHERE color=?';
                 $stmt = $dbh -> prepare($sql);
@@ -72,11 +65,7 @@
             // 同じcolorのidが無かったら、新規でデータベースに書き込む。
             } else {
                 if(!empty($act[$i])){
-                    $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user3 = 'root';
-                    $password3 = '';
-                    $dbh3 = new PDO($dsn3, $user3, $password3);
-                    $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $dbh = dbconnect();
 
                     $sql3 = 'INSERT INTO activity(activity, color, do_not_need) VALUES(?,?,?)';
                     $stmt3 = $dbh3 -> prepare($sql3);
@@ -95,17 +84,13 @@
 
       
     // 初期値を入れる為にデータベースを呼び出す。
-    $dsn4 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-    $user4 = 'root';
-    $password4 = '';
-    $dbh4 = new PDO($dsn4, $user4, $password4);
-    $dbh4->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $dbh = dbconnect();
 
     $sql4 = "SELECT color, activity, do_not_need FROM activity WHERE 1";
-    $stmt4 = $dbh4 -> prepare($sql4);
+    $stmt4 = $dbh -> prepare($sql4);
     $stmt4 -> execute();
 
-    $dbh4 = null;
+    $dbh = null;
     $color_list = [];
     $do_not_need = 0;
 

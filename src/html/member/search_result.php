@@ -16,8 +16,8 @@
     <br>
     
     <?php
+    require_once('../common.php');
     if(!empty($_POST)){
-        require_once('../common.php');
         $post = sanitize($_POST);
     }
 
@@ -64,21 +64,16 @@
 
     <!-- 青信号と黄信号(以上以下も)引き継ぐ -->
     <?php
-        $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user3 = 'root';
-        $password3 = '';
-        $dbh3 = new PDO($dsn3, $user3, $password3);
-        $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+        $dbh = dbconnect();
 
         $sql3 = 'SELECT id, item, display_unnecessary, color FROM physical_condition_items WHERE color = ? OR color = ?';
-        $stmt3 = $dbh3 -> prepare($sql3);
+        $stmt3 = $dbh -> prepare($sql3);
         $data3 = [];
         $data3[] = 0;
         $data3[] = 2;
         $stmt3 -> execute($data3);
 
-        $dbh3 = null;
+        $dbh = null;
 
         
         while(true) {
@@ -151,12 +146,7 @@
     <table border="1" class="table-striped">
         <!-- colorのidを配列に入れる -->
         <?php
-            $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-            $user = 'root';
-            $password = '';
-            $dbh = new PDO($dsn, $user, $password);
-            $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+            $dbh = dbconnect();
 
             $sql = 'SELECT id, display_unnecessary, color FROM physical_condition_items WHERE 1';
             $stmt = $dbh -> prepare($sql);
@@ -225,12 +215,7 @@
             <th class="weather">天気</th>
             <?php
                 // 青信号の項目をthに書き出す
-                $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user = 'root';
-                $password = '';
-                $dbh = new PDO($dsn, $user, $password);
-                $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+                $dbh = dbconnect();
 
                 $sql = 'SELECT item, short_name, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
                 $stmt = $dbh -> prepare($sql);
@@ -254,12 +239,7 @@
                 }
 
                 // 黄信号の項目をthに書き出す
-                $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user = 'root';
-                $password = '';
-                $dbh = new PDO($dsn, $user, $password);
-                $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+                $dbh = dbconnect();
 
                 $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
                 $stmt = $dbh -> prepare($sql);
@@ -286,12 +266,7 @@
             <?php foreach($add_item as $y ) {
                 if($y == "1") {
                     // 追加黄の項目をthに書き出す
-                    $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user = 'root';
-                    $password = '';
-                    $dbh = new PDO($dsn, $user, $password);
-                    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+                    $dbh = dbconnect();
 
                     $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
                     $stmt = $dbh -> prepare($sql);
@@ -315,12 +290,7 @@
                     }
                 }elseif($y == "2") {
                     // 追加黄の項目をthに書き出す
-                    $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user = 'root';
-                    $password = '';
-                    $dbh = new PDO($dsn, $user, $password);
-                    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+                    $dbh = dbconnect();
 
                     $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
                     $stmt = $dbh -> prepare($sql);
@@ -344,12 +314,7 @@
                     }
                 }elseif($y == "3") {
                     // 追加黄の項目をthに書き出す
-                    $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user = 'root';
-                    $password = '';
-                    $dbh = new PDO($dsn, $user, $password);
-                    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+                    $dbh = dbconnect();
 
                     $sql = 'SELECT id, item, short_name, display_unnecessary, color FROM physical_condition_items WHERE display_unnecessary = ? AND color = ?';
                     $stmt = $dbh -> prepare($sql);
@@ -408,11 +373,7 @@
                 $signal_flag = false;
 
                 //　検索をする
-                $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user = 'root';
-                $password = '';
-                $dbh = new PDO($dsn, $user, $password);
-                $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $dbh2 = dbconnect();
 
                 $sql = "";
                 $sql .= "SELECT entries_date, weekday, sleep_start_time, sleep_end_time, sleep_sum, sound_sleep, nap, nap_start_time, nap_end_time, nap_sum, spirit_signal, weather, event1, event2, event3, notice ";
@@ -462,17 +423,13 @@
                         $sql .= "AND (";
                         $signal_flag = true;
                     } 
-                    $dsn4 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user4 = 'root';
-                    $password4 = '';
-                    $dbh4 = new PDO($dsn4, $user4, $password4);
-                    $dbh4->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $dbh = dbconnect();
 
                     $sql4 = 'SELECT DISTINCT P.id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = C.condition_id WHERE 1';
-                    $stmt4 = $dbh4 -> prepare($sql4);
+                    $stmt4 = $dbh -> prepare($sql4);
                     $stmt4 -> execute();
 
-                    $dbh4 = null;
+                    $dbh = null;
 
                     while(true) {
                         $rec4 = $stmt4->fetch(PDO::FETCH_ASSOC);
@@ -501,17 +458,13 @@
                     }
                 }
                 
-                $dsn6 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user6 = 'root';
-                $password6 = '';
-                $dbh6 = new PDO($dsn6, $user6, $password6);
-                $dbh6->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $dbh = dbconnect();
 
                 $sql6 = 'SELECT P.id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = C.condition_id WHERE 1';
-                $stmt6 = $dbh6 -> prepare($sql6);
+                $stmt6 = $dbh -> prepare($sql6);
                 $stmt6 -> execute();
 
-                $dbh6 = null;
+                $dbh = null;
                 $condition_flag = false;
 
                 while(true) {
@@ -630,17 +583,13 @@
                     $data[] = $nap_total;
                 }
                 if(is_numeric($blue_signal) || is_numeric($yellow_signal)){
-                    $dsn5 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                    $user5 = 'root';
-                    $password5 = '';
-                    $dbh5 = new PDO($dsn5, $user5, $password5);
-                    $dbh5->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $dbh = dbconnect();
 
                     $sql5 = 'SELECT DISTINCT P.id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = C.condition_id WHERE 1';
-                    $stmt5 = $dbh5 -> prepare($sql5);
+                    $stmt5 = $dbh -> prepare($sql5);
                     $stmt5 -> execute();
 
-                    $dbh5 = null;
+                    $dbh = null;
                     
                     while(true) {
                         $rec5 = $stmt5->fetch(PDO::FETCH_ASSOC);
@@ -668,17 +617,13 @@
                     }
                 }
 
-                $dsn7 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                $user7 = 'root';
-                $password7 = '';
-                $dbh7 = new PDO($dsn7, $user7, $password7);
-                $dbh7->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $dbh = dbconnect();
 
                 $sql7 = 'SELECT P.id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = C.condition_id WHERE 1';
-                $stmt7 = $dbh7 -> prepare($sql7);
+                $stmt7 = $dbh -> prepare($sql7);
                 $stmt7 -> execute();
 
-                $dbh7 = null;
+                $dbh = null;
                 
                 while(true) {
                     $rec7 = $stmt7->fetch(PDO::FETCH_ASSOC);
@@ -727,10 +672,10 @@
                     $data[] = '%'.$event.'%';
                 }
 
-                $stmt = $dbh -> prepare($sql);
+                $stmt = $dbh2 -> prepare($sql);
                 $stmt -> execute($data);
 
-                $dbh = null;
+                $dbh2 = null;
 
                 // 曜日、熟睡度、昼寝、天気の配列
                 $week = array("日", "月", "火", "水", "木", "金", "土");
@@ -816,20 +761,15 @@
                     <?php
                     // 青信号のIDをもとに２重ループする（理由：空やった場合に、tableに空白をいれないといけないから）
                     foreach( $blue_roop as $value ){
-                        $dsn2 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                        $user2 = 'root';
-                        $password2 = '';
-                        $dbh2 = new PDO($dsn2, $user2, $password2);
-                        $dbh2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+                        $dbh = dbconnect();
 
                         $sql2 = 'SELECT P.id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = condition_id WHERE monitoring_id = ?';
-                        $stmt2 = $dbh2 -> prepare($sql2);
+                        $stmt2 = $dbh -> prepare($sql2);
                         $data2 = [];
                         $data2[] = $rec['id'];
                         $stmt2 -> execute($data2);
 
-                        $dbh2 = null;
+                        $dbh = null;
 
                         $roop_flag = false;
 
@@ -867,20 +807,15 @@
 
                     // 黄信号のIDをもとに２重ループする（理由：空やった場合に、tableに空白をいれないといけないから）
                     foreach( $yellow_roop as $v ){
-                        $dsn3 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                        $user3 = 'root';
-                        $password3 = '';
-                        $dbh3 = new PDO($dsn3, $user3, $password3);
-                        $dbh3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+                        $dbh = dbconnect();
 
                         $sql3 = 'SELECT condition_id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = condition_id WHERE monitoring_id = ?';
-                        $stmt3 = $dbh3 -> prepare($sql3);
+                        $stmt3 = $dbh -> prepare($sql3);
                         $data3 = [];
                         $data3[] = $rec['id'];
                         $stmt3 -> execute($data3);
 
-                        $dbh3 = null;
+                        $dbh = null;
 
                         $roop_flag = false;
 
@@ -917,20 +852,15 @@
                     if($l == "1") {
                         // 追加黄のIDをもとに２重ループする
                         foreach( $add_yellow_roop as $w ){
-                            $dsn8 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                            $user8 = 'root';
-                            $password8 = '';
-                            $dbh8 = new PDO($dsn8, $user8, $password8);
-                            $dbh8->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+                            $dbh = dbconnect();
 
                             $sql8 = 'SELECT condition_id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = condition_id WHERE monitoring_id = ?';
-                            $stmt8 = $dbh8 -> prepare($sql8);
+                            $stmt8 = $dbh -> prepare($sql8);
                             $data8 = [];
                             $data8[] = $rec['id'];
                             $stmt8 -> execute($data8);
 
-                            $dbh8 = null;
+                            $dbh = null;
 
                             $roop_flag = false;
 
@@ -961,20 +891,15 @@
                     }elseif($l == "2") {
                         // 追加橙のIDをもとに２重ループする
                         foreach( $add_orenge_roop as $n ){
-                            $dsn9 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                            $user9 = 'root';
-                            $password9 = '';
-                            $dbh9 = new PDO($dsn9, $user9, $password9);
-                            $dbh9->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+                            $dbh = dbconnect();
 
                             $sql9 = 'SELECT condition_id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = condition_id WHERE monitoring_id = ?';
-                            $stmt9 = $dbh9 -> prepare($sql9);
+                            $stmt9 = $dbh -> prepare($sql9);
                             $data9 = [];
                             $data9[] = $rec['id'];
                             $stmt9 -> execute($data9);
 
-                            $dbh9 = null;
+                            $dbh = null;
 
                             $roop_flag = false;
 
@@ -1005,20 +930,15 @@
                     }elseif($l == "3") {
                         // 追加橙のIDをもとに２重ループする
                         foreach( $add_red_roop as $red ){
-                            $dsn10 = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-                            $user10 = 'root';
-                            $password10 = '';
-                            $dbh10 = new PDO($dsn10, $user10, $password10);
-                            $dbh10->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+                            $dbh = dbconnect();
 
                             $sql10 = 'SELECT condition_id, display_unnecessary, color, condition_level FROM physical_condition_items P JOIN condition_levels C ON P.id = condition_id WHERE monitoring_id = ?';
-                            $stmt10 = $dbh10 -> prepare($sql10);
+                            $stmt10 = $dbh -> prepare($sql10);
                             $data10 = [];
                             $data10[] = $rec['id'];
                             $stmt10 -> execute($data10);
 
-                            $dbh10 = null;
+                            $dbh = null;
 
                             $roop_flag = false;
 

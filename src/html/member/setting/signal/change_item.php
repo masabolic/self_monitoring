@@ -18,8 +18,8 @@
     // 体調を示す信号
     $signal_color = array( 2 => '黄', 6 => '追加黄', 7 => '追加橙', 8 => '追加赤');
 
+    require_once('../../../common.php');
     if(!empty($_POST)){
-        require_once('../../../common.php');
         $post = sanitize($_POST);
     }
 
@@ -49,11 +49,7 @@
 
     // 既存信号をアップデートする
     if(isset($post['blue_signal']) || isset($post['signal'])) {
-        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user = 'root';
-        $password = '';
-        $dbh = new PDO($dsn, $user, $password);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $dbh = dbconnect();
 
         $sql = 'UPDATE physical_condition_items SET display_unnecessary=?, color=? WHERE id=?';
         $stmt = $dbh -> prepare($sql);

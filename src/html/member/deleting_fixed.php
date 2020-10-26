@@ -15,24 +15,24 @@
     <br>
 
     <?php
-    // is_deletedを1にして、基本表示しないようにする。
-        $dsn = 'mysql:dbname=self_monitoring;host=localhost;charset=utf8';
-        $user = 'root';
-        $password = '';
-        $dbh = new PDO($dsn, $user, $password);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    require_once('../common.php');
+    if(!empty($_POST)){
+        $post = sanitize($_POST);
+    }
 
+    // is_deletedを1にして、基本表示しないようにする。
+        $dbh = dbconnect();
 
         $sql = 'UPDATE monitoring SET is_deleted=? WHERE id = ?';
         $stmt = $dbh -> prepare($sql);
         $data = [];
         $data[] = 1;
-        $data[] = $_POST['id'];
+        $data[] = $post['id'];
         $stmt -> execute($data);
 
         $dbh = null;
 
-    print $_POST["date"]; ?>を
+    print $post["date"]; ?>を
     <br>
     削除しました。
     <br>
